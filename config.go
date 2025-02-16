@@ -91,7 +91,7 @@ type Specifications struct {
 	SliceName string     `json:"sliceName"`
 	Title     string     `json:"title"`
 	Given     []Given    `json:"given"`
-	When      []any      `json:"when"`
+	When      []Command  `json:"when"`
 	Then      []Then     `json:"then"`
 	Comments  []Comments `json:"comments"`
 }
