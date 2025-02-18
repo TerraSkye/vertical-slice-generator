@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/AlecAivazis/survey/v2"
 	"log"
+	"slices"
 )
 
 var (
@@ -31,19 +32,21 @@ func main() {
 		log.Fatal(err)
 	}
 
-	var slices = make([]string, len(config.Slices))
+	var tasks = make([]string, len(config.Slices))
 
 	for i, slice := range config.Slices {
-		slices[i] = slice.Title
+		tasks[i] = slice.Title
 	}
 	slicesToGenerate := Checkboxes(
-		"Which slice would you like to generate", slices,
+		"Which slice would you like to generate", append([]string{"all"}, tasks...),
 	)
 	//fmt.Println(slicesToGenerate)
 
+	generateAll := slices.Contains(slicesToGenerate, "all")
+
 	for _, sliceName := range slicesToGenerate {
 
-		fmt.Println(sliceName)
+		//fmt.Println(sliceName)
 		for _, slice := range config.Slices {
 			if slice.Title == sliceName {
 
