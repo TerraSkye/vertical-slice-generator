@@ -37,7 +37,7 @@ func main() {
 		slices[i] = slice.Title
 	}
 	slicesToGenerate := Checkboxes(
-		"Wich slice would you like to generate", slices,
+		"Which slice would you like to generate", slices,
 	)
 	//fmt.Println(slicesToGenerate)
 
