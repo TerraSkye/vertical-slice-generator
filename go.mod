@@ -10,6 +10,7 @@ require (
 
 require (
 	github.com/ThreeDotsLabs/watermill v1.4.4 // indirect
+	github.com/io-da/query v1.3.5 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/mattn/go-colorable v0.1.2 // indirect
