@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	//go:embed config.json
+	//go:embed config.json-2
 	configuration []byte
 )
 
