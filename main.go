@@ -20,7 +20,7 @@ var (
 
 func main() {
 
-	//os.RemoveAll("gen")
+	os.RemoveAll("gen")
 	var config Configuration
 
 	if err := json.Unmarshal(configuration, &config); err != nil {
@@ -222,7 +222,7 @@ func main() {
 
 	// generate all command handlers.
 	for _, slice := range config.Slices {
-		if len(slice.Commands) == 0 || true {
+		if len(slice.Commands) == 0 || len(slice.Processors) > 0 {
 			continue
 		}
 
@@ -301,7 +301,7 @@ func main() {
 
 	// generate all query handlers.
 	for _, slice := range config.Slices {
-		if len(slice.Readmodels) == 0 || true {
+		if len(slice.Readmodels) == 0 {
 			continue
 		}
 
@@ -394,7 +394,7 @@ func main() {
 			continue
 		}
 
-		aggregateFile := fmt.Sprintf("gen/%s/%s/service.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
+		aggregateFile := fmt.Sprintf("gen/%s/%s/automation.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
 		files[aggregateFile] = generator.GetFile(strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
 		files[aggregateFile].Type().Id("Service").Interface(Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()))
 
@@ -473,17 +473,23 @@ func main() {
 			group.Add(Return().Nil())
 		})
 
-		for _, command := range slice.Commands {
-			for _, dependency := range command.Dependencies {
-				if dependency.Type == "INBOUND" {
-					fmt.Println(dependency)
-				}
-			}
-		}
+		//for _, command := range slice.Commands {
+		//	for _, dependency := range command.Dependencies {
+		//		if dependency.Type == "INBOUND" {
+		//			fmt.Println(slice.Title, dependency)
+		//		}
+		//	}
+		//}
 
-		for _, readModel := range slice.Readmodels {
-			fmt.Println(readModel.Title)
-		}
+		//slice.Processors[0].Dependencies
+
+		//for _, readModel := range slice.Processors {
+		//	fmt.Println(readModel.Dependencies)
+		//}
+		//
+		//for _, readModel := range slice.Processors {
+		//	fmt.Println(readModel.Dependencies)
+		//}
 		//	files[aggregateFile].Line().Type().Id(generator.ToCamelCase(readModel.Title) + "ReadModel").StructFunc(func(group *Group) {
 		//		for _, field := range readModel.Fields {
 		//
