@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	//go:embed config.json
+	//go:embed config.json.1
 	configuration []byte
 )
 
@@ -312,353 +312,353 @@ func main() {
 
 	}
 
-	//// generate all query handlers.
-	//for _, slice := range config.Slices {
-	//	if len(slice.Commands) == 0 {
-	//		continue
-	//	}
-	//
-	//	aggregateFile := fmt.Sprintf("gen/%s/%s/service.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
-	//	files[aggregateFile] = generator.GetFile(strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
-	//	files[aggregateFile].Type().Id("Service").Interface(Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()))
-	//
-	//	for _, command := range slice.Commands {
-	//		files[aggregateFile].Line().Type().Id("Payload").StructFunc(func(group *Group) {
-	//			for _, field := range command.Fields {
-	//
-	//				property := Id(generator.ToCamelCase(field.Name))
-	//
-	//				if field.Cardinality != "Single" {
-	//					property = property.Index()
-	//				}
-	//
-	//				switch field.Type {
-	//				case "String":
-	//					property = property.String()
-	//				case "UUID":
-	//					property = property.Qual("github.com/google/uuid", "UUID")
-	//				case "Boolean":
-	//					property = property.Bool()
-	//				case "Double":
-	//					property = property.Float64()
-	//				case "Date":
-	//					property = property.Qual("time", "Time")
-	//				case "DateTime":
-	//					property = property.Qual("time", "Time")
-	//				case "Long":
-	//					property = property.Int64()
-	//				case "Int":
-	//					property = property.Int()
-	//				case "Custom":
-	//					property = property.Interface()
-	//				}
-	//
-	//				group.Add(property)
-	//			}
-	//		})
-	//	}
-	//
-	//	//  todo check if we have commands, we need to include thye commandbus
-	//	files[aggregateFile].Type().Id("service").StructFunc(func(group *Group) {
-	//		if len(slice.Commands) > 0 {
-	//			group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
-	//		}
-	//	})
-	//
-	//	files[aggregateFile].Func().Id("New").ParamsFunc(func(group *Group) {
-	//		if len(slice.Commands) > 0 {
-	//			group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
-	//		}
-	//	}).Params(Id("Service")).Block(Return().Op("&").Id("service").Block(DictFunc(func(dict Dict) {
-	//		if len(slice.Commands) > 0 {
-	//			dict[Id("commandBus")] = Id("commandBus").Op(",")
-	//		}
-	//	})))
-	//
-	//	files[aggregateFile].Func().Params(Id("s").Op("*").Op("service")).Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()).BlockFunc(func(group *Group) {
-	//
-	//		group.Add(Return().Nil())
-	//	})
-	//
-	//	for _, readModel := range slice.Readmodels {
-	//		files[aggregateFile].Line().Type().Id(generator.ToCamelCase(readModel.Title) + "ReadModel").StructFunc(func(group *Group) {
-	//			for _, field := range readModel.Fields {
-	//
-	//				property := Id(generator.ToCamelCase(field.Name))
-	//
-	//				if field.Cardinality != "Single" {
-	//					property = property.Index()
-	//				}
-	//
-	//				switch field.Type {
-	//				case "String":
-	//					property = property.String()
-	//				case "UUID":
-	//					property = property.Qual("github.com/google/uuid", "UUID")
-	//				case "Boolean":
-	//					property = property.Bool()
-	//				case "Double":
-	//					property = property.Float64()
-	//				case "Date":
-	//					property = property.Qual("time", "Time")
-	//				case "DateTime":
-	//					property = property.Qual("time", "Time")
-	//				case "Long":
-	//					property = property.Int64()
-	//				case "Int":
-	//					property = property.Int()
-	//				case "Custom":
-	//					property = property.Interface()
-	//				}
-	//
-	//				group.Add(property)
-	//			}
-	//		})
-	//
-	//		for _, dependency := range readModel.Dependencies {
-	//			if dependency.Type == "INBOUND" && dependency.ElementType == "EVENT" {
-	//				for _, slices := range config.Slices {
-	//					for _, event := range slices.Events {
-	//						if event.ID == dependency.ID {
-	//							// outbound event.
-	//							eventsPackage, err := generator.ResolvePackagePath(fmt.Sprintf("gen/%s/events/%s.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(event.Title))))
-	//							if err != nil {
-	//								log.Fatal(err)
-	//							}
-	//							files[aggregateFile].ImportName(filepath.Dir(eventsPackage), "events")
-	//							files[aggregateFile].Line().Func().Params(Id("r").Op("*").Id(generator.ToCamelCase(readModel.Title)+"ReadModel")).
-	//								Id("On"+generator.ToCamelCase(dependency.Title)).Params(Id("ctx").Qual("context", "Context"), Id("ev").Op("*").Qual(filepath.Dir(eventsPackage), generator.ToCamelCase(dependency.Title))).Params(Error()).BlockFunc(func(group *Group) {
-	//								for _, field := range event.Fields {
-	//									group.Add(Id("r").Dot(generator.ToCamelCase(field.Name)).Op("=").Id("ev").Dot(generator.ToCamelCase(field.Name)))
-	//								}
-	//								group.Return().Nil()
-	//							})
-	//						}
-	//					}
-	//				}
-	//			}
-	//		}
-	//
-	//	}
-	//
-	//	//for i, slice := range config.Slices {
-	//	//	for i2, screen := range slice.Screens {
-	//	//
-	//	//	}
-	//	//}
-	//
-	//	for _, processor := range slice.Processors {
-	//		files[aggregateFile].Line().Type().Id(generator.ToCamelCase(processor.Title)).StructFunc(func(group *Group) {
-	//			for _, field := range processor.Fields {
-	//
-	//				property := Id(generator.ToCamelCase(field.Name))
-	//
-	//				if field.Cardinality != "Single" {
-	//					property = property.Index()
-	//				}
-	//
-	//				switch field.Type {
-	//				case "String":
-	//					property = property.String()
-	//				case "UUID":
-	//					property = property.Qual("github.com/google/uuid", "UUID")
-	//				case "Boolean":
-	//					property = property.Bool()
-	//				case "Double":
-	//					property = property.Float64()
-	//				case "Date":
-	//					property = property.Qual("time", "Time")
-	//				case "DateTime":
-	//					property = property.Qual("time", "Time")
-	//				case "Long":
-	//					property = property.Int64()
-	//				case "Int":
-	//					property = property.Int()
-	//				case "Custom":
-	//					property = property.Interface()
-	//				}
-	//
-	//				group.Add(property)
-	//			}
-	//		})
-	//
-	//	}
-	//}
-	//
-	////generate processors
-	//
-	//// generate all query handlers.
-	//for _, slice := range config.Slices {
-	//	if len(slice.Commands) == 0 {
-	//		continue
-	//	}
-	//
-	//	aggregateFile := fmt.Sprintf("gen/%s/%s/service.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
-	//	files[aggregateFile] = generator.GetFile(strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
-	//	files[aggregateFile].Type().Id("Service").Interface(Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()))
-	//
-	//	for _, command := range slice.Commands {
-	//		files[aggregateFile].Line().Type().Id("Payload").StructFunc(func(group *Group) {
-	//			for _, field := range command.Fields {
-	//
-	//				property := Id(generator.ToCamelCase(field.Name))
-	//
-	//				if field.Cardinality != "Single" {
-	//					property = property.Index()
-	//				}
-	//
-	//				switch field.Type {
-	//				case "String":
-	//					property = property.String()
-	//				case "UUID":
-	//					property = property.Qual("github.com/google/uuid", "UUID")
-	//				case "Boolean":
-	//					property = property.Bool()
-	//				case "Double":
-	//					property = property.Float64()
-	//				case "Date":
-	//					property = property.Qual("time", "Time")
-	//				case "DateTime":
-	//					property = property.Qual("time", "Time")
-	//				case "Long":
-	//					property = property.Int64()
-	//				case "Int":
-	//					property = property.Int()
-	//				case "Custom":
-	//					property = property.Interface()
-	//				}
-	//
-	//				group.Add(property)
-	//			}
-	//		})
-	//	}
-	//
-	//	//  todo check if we have commands, we need to include thye commandbus
-	//	files[aggregateFile].Type().Id("service").StructFunc(func(group *Group) {
-	//		if len(slice.Commands) > 0 {
-	//			group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
-	//		}
-	//	})
-	//
-	//	files[aggregateFile].Func().Id("New").ParamsFunc(func(group *Group) {
-	//		if len(slice.Commands) > 0 {
-	//			group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
-	//		}
-	//	}).Params(Id("Service")).Block(Return().Op("&").Id("service").Block(DictFunc(func(dict Dict) {
-	//		if len(slice.Commands) > 0 {
-	//			dict[Id("commandBus")] = Id("commandBus").Op(",")
-	//		}
-	//	})))
-	//
-	//	files[aggregateFile].Func().Params(Id("s").Op("*").Op("service")).Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()).BlockFunc(func(group *Group) {
-	//
-	//		group.Add(Return().Nil())
-	//	})
-	//
-	//	for _, readModel := range slice.Readmodels {
-	//		files[aggregateFile].Line().Type().Id(generator.ToCamelCase(readModel.Title) + "ReadModel").StructFunc(func(group *Group) {
-	//			for _, field := range readModel.Fields {
-	//
-	//				property := Id(generator.ToCamelCase(field.Name))
-	//
-	//				if field.Cardinality != "Single" {
-	//					property = property.Index()
-	//				}
-	//
-	//				switch field.Type {
-	//				case "String":
-	//					property = property.String()
-	//				case "UUID":
-	//					property = property.Qual("github.com/google/uuid", "UUID")
-	//				case "Boolean":
-	//					property = property.Bool()
-	//				case "Double":
-	//					property = property.Float64()
-	//				case "Date":
-	//					property = property.Qual("time", "Time")
-	//				case "DateTime":
-	//					property = property.Qual("time", "Time")
-	//				case "Long":
-	//					property = property.Int64()
-	//				case "Int":
-	//					property = property.Int()
-	//				case "Custom":
-	//					property = property.Interface()
-	//				}
-	//
-	//				group.Add(property)
-	//			}
-	//		})
-	//
-	//		for _, dependency := range readModel.Dependencies {
-	//			if dependency.Type == "INBOUND" && dependency.ElementType == "EVENT" {
-	//				for _, slices := range config.Slices {
-	//					for _, event := range slices.Events {
-	//						if event.ID == dependency.ID {
-	//							// outbound event.
-	//							eventsPackage, err := generator.ResolvePackagePath(fmt.Sprintf("gen/%s/events/%s.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(event.Title))))
-	//							if err != nil {
-	//								log.Fatal(err)
-	//							}
-	//							files[aggregateFile].ImportName(filepath.Dir(eventsPackage), "events")
-	//							files[aggregateFile].Line().Func().Params(Id("r").Op("*").Id(generator.ToCamelCase(readModel.Title)+"ReadModel")).
-	//								Id("On"+generator.ToCamelCase(dependency.Title)).Params(Id("ctx").Qual("context", "Context"), Id("ev").Op("*").Qual(filepath.Dir(eventsPackage), generator.ToCamelCase(dependency.Title))).Params(Error()).BlockFunc(func(group *Group) {
-	//								for _, field := range event.Fields {
-	//									group.Add(Id("r").Dot(generator.ToCamelCase(field.Name)).Op("=").Id("ev").Dot(generator.ToCamelCase(field.Name)))
-	//								}
-	//								group.Return().Nil()
-	//							})
-	//						}
-	//					}
-	//				}
-	//			}
-	//		}
-	//
-	//	}
-	//
-	//	//for i, slice := range config.Slices {
-	//	//	for i2, screen := range slice.Screens {
-	//	//
-	//	//	}
-	//	//}
-	//
-	//	for _, processor := range slice.Processors {
-	//		files[aggregateFile].Line().Type().Id(generator.ToCamelCase(processor.Title)).StructFunc(func(group *Group) {
-	//			for _, field := range processor.Fields {
-	//
-	//				property := Id(generator.ToCamelCase(field.Name))
-	//
-	//				if field.Cardinality != "Single" {
-	//					property = property.Index()
-	//				}
-	//
-	//				switch field.Type {
-	//				case "String":
-	//					property = property.String()
-	//				case "UUID":
-	//					property = property.Qual("github.com/google/uuid", "UUID")
-	//				case "Boolean":
-	//					property = property.Bool()
-	//				case "Double":
-	//					property = property.Float64()
-	//				case "Date":
-	//					property = property.Qual("time", "Time")
-	//				case "DateTime":
-	//					property = property.Qual("time", "Time")
-	//				case "Long":
-	//					property = property.Int64()
-	//				case "Int":
-	//					property = property.Int()
-	//				case "Custom":
-	//					property = property.Interface()
-	//				}
-	//
-	//				group.Add(property)
-	//			}
-	//		})
-	//
-	//	}
-	//}
+	// generate all query handlers.
+	for _, slice := range config.Slices {
+		if len(slice.Commands) == 0 {
+			continue
+		}
+
+		aggregateFile := fmt.Sprintf("gen/%s/%s/service.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
+		files[aggregateFile] = generator.GetFile(strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
+		files[aggregateFile].Type().Id("Service").Interface(Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()))
+
+		for _, command := range slice.Commands {
+			files[aggregateFile].Line().Type().Id("Payload").StructFunc(func(group *Group) {
+				for _, field := range command.Fields {
+
+					property := Id(generator.ToCamelCase(field.Name))
+
+					if field.Cardinality != "Single" {
+						property = property.Index()
+					}
+
+					switch field.Type {
+					case "String":
+						property = property.String()
+					case "UUID":
+						property = property.Qual("github.com/google/uuid", "UUID")
+					case "Boolean":
+						property = property.Bool()
+					case "Double":
+						property = property.Float64()
+					case "Date":
+						property = property.Qual("time", "Time")
+					case "DateTime":
+						property = property.Qual("time", "Time")
+					case "Long":
+						property = property.Int64()
+					case "Int":
+						property = property.Int()
+					case "Custom":
+						property = property.Interface()
+					}
+
+					group.Add(property)
+				}
+			})
+		}
+
+		//  todo check if we have commands, we need to include thye commandbus
+		files[aggregateFile].Type().Id("service").StructFunc(func(group *Group) {
+			if len(slice.Commands) > 0 {
+				group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
+			}
+		})
+
+		files[aggregateFile].Func().Id("New").ParamsFunc(func(group *Group) {
+			if len(slice.Commands) > 0 {
+				group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
+			}
+		}).Params(Id("Service")).Block(Return().Op("&").Id("service").Block(DictFunc(func(dict Dict) {
+			if len(slice.Commands) > 0 {
+				dict[Id("commandBus")] = Id("commandBus").Op(",")
+			}
+		})))
+
+		files[aggregateFile].Func().Params(Id("s").Op("*").Op("service")).Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()).BlockFunc(func(group *Group) {
+
+			group.Add(Return().Nil())
+		})
+
+		for _, readModel := range slice.Readmodels {
+			files[aggregateFile].Line().Type().Id(generator.ToCamelCase(readModel.Title) + "ReadModel").StructFunc(func(group *Group) {
+				for _, field := range readModel.Fields {
+
+					property := Id(generator.ToCamelCase(field.Name))
+
+					if field.Cardinality != "Single" {
+						property = property.Index()
+					}
+
+					switch field.Type {
+					case "String":
+						property = property.String()
+					case "UUID":
+						property = property.Qual("github.com/google/uuid", "UUID")
+					case "Boolean":
+						property = property.Bool()
+					case "Double":
+						property = property.Float64()
+					case "Date":
+						property = property.Qual("time", "Time")
+					case "DateTime":
+						property = property.Qual("time", "Time")
+					case "Long":
+						property = property.Int64()
+					case "Int":
+						property = property.Int()
+					case "Custom":
+						property = property.Interface()
+					}
+
+					group.Add(property)
+				}
+			})
+
+			for _, dependency := range readModel.Dependencies {
+				if dependency.Type == "INBOUND" && dependency.ElementType == "EVENT" {
+					for _, slices := range config.Slices {
+						for _, event := range slices.Events {
+							if event.ID == dependency.ID {
+								// outbound event.
+								eventsPackage, err := generator.ResolvePackagePath(fmt.Sprintf("gen/%s/events/%s.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(event.Title))))
+								if err != nil {
+									log.Fatal(err)
+								}
+								files[aggregateFile].ImportName(filepath.Dir(eventsPackage), "events")
+								files[aggregateFile].Line().Func().Params(Id("r").Op("*").Id(generator.ToCamelCase(readModel.Title)+"ReadModel")).
+									Id("On"+generator.ToCamelCase(dependency.Title)).Params(Id("ctx").Qual("context", "Context"), Id("ev").Op("*").Qual(filepath.Dir(eventsPackage), generator.ToCamelCase(dependency.Title))).Params(Error()).BlockFunc(func(group *Group) {
+									for _, field := range event.Fields {
+										group.Add(Id("r").Dot(generator.ToCamelCase(field.Name)).Op("=").Id("ev").Dot(generator.ToCamelCase(field.Name)))
+									}
+									group.Return().Nil()
+								})
+							}
+						}
+					}
+				}
+			}
+
+		}
+
+		//for i, slice := range config.Slices {
+		//	for i2, screen := range slice.Screens {
+		//
+		//	}
+		//}
+
+		for _, processor := range slice.Processors {
+			files[aggregateFile].Line().Type().Id(generator.ToCamelCase(processor.Title)).StructFunc(func(group *Group) {
+				for _, field := range processor.Fields {
+
+					property := Id(generator.ToCamelCase(field.Name))
+
+					if field.Cardinality != "Single" {
+						property = property.Index()
+					}
+
+					switch field.Type {
+					case "String":
+						property = property.String()
+					case "UUID":
+						property = property.Qual("github.com/google/uuid", "UUID")
+					case "Boolean":
+						property = property.Bool()
+					case "Double":
+						property = property.Float64()
+					case "Date":
+						property = property.Qual("time", "Time")
+					case "DateTime":
+						property = property.Qual("time", "Time")
+					case "Long":
+						property = property.Int64()
+					case "Int":
+						property = property.Int()
+					case "Custom":
+						property = property.Interface()
+					}
+
+					group.Add(property)
+				}
+			})
+
+		}
+	}
+
+	//generate processors
+
+	// generate all query handlers.
+	for _, slice := range config.Slices {
+		if len(slice.Commands) == 0 {
+			continue
+		}
+
+		aggregateFile := fmt.Sprintf("gen/%s/%s/service.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
+		files[aggregateFile] = generator.GetFile(strings.ToLower(generator.ToCamelCase(slice.Title[7:])))
+		files[aggregateFile].Type().Id("Service").Interface(Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()))
+
+		for _, command := range slice.Commands {
+			files[aggregateFile].Line().Type().Id("Payload").StructFunc(func(group *Group) {
+				for _, field := range command.Fields {
+
+					property := Id(generator.ToCamelCase(field.Name))
+
+					if field.Cardinality != "Single" {
+						property = property.Index()
+					}
+
+					switch field.Type {
+					case "String":
+						property = property.String()
+					case "UUID":
+						property = property.Qual("github.com/google/uuid", "UUID")
+					case "Boolean":
+						property = property.Bool()
+					case "Double":
+						property = property.Float64()
+					case "Date":
+						property = property.Qual("time", "Time")
+					case "DateTime":
+						property = property.Qual("time", "Time")
+					case "Long":
+						property = property.Int64()
+					case "Int":
+						property = property.Int()
+					case "Custom":
+						property = property.Interface()
+					}
+
+					group.Add(property)
+				}
+			})
+		}
+
+		//  todo check if we have commands, we need to include thye commandbus
+		files[aggregateFile].Type().Id("service").StructFunc(func(group *Group) {
+			if len(slice.Commands) > 0 {
+				group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
+			}
+		})
+
+		files[aggregateFile].Func().Id("New").ParamsFunc(func(group *Group) {
+			if len(slice.Commands) > 0 {
+				group.Add(Id("commandBus").Qual("github.com/ThreeDotsLabs/watermill/components/cqrs", "CommandBus"))
+			}
+		}).Params(Id("Service")).Block(Return().Op("&").Id("service").Block(DictFunc(func(dict Dict) {
+			if len(slice.Commands) > 0 {
+				dict[Id("commandBus")] = Id("commandBus").Op(",")
+			}
+		})))
+
+		files[aggregateFile].Func().Params(Id("s").Op("*").Op("service")).Id(generator.ToCamelCase(slice.Title[7:])).Params(Id("ctx").Qual("context", "Context"), Id("payload").Qual("", "Payload")).Params(Error()).BlockFunc(func(group *Group) {
+
+			group.Add(Return().Nil())
+		})
+
+		for _, readModel := range slice.Readmodels {
+			files[aggregateFile].Line().Type().Id(generator.ToCamelCase(readModel.Title) + "ReadModel").StructFunc(func(group *Group) {
+				for _, field := range readModel.Fields {
+
+					property := Id(generator.ToCamelCase(field.Name))
+
+					if field.Cardinality != "Single" {
+						property = property.Index()
+					}
+
+					switch field.Type {
+					case "String":
+						property = property.String()
+					case "UUID":
+						property = property.Qual("github.com/google/uuid", "UUID")
+					case "Boolean":
+						property = property.Bool()
+					case "Double":
+						property = property.Float64()
+					case "Date":
+						property = property.Qual("time", "Time")
+					case "DateTime":
+						property = property.Qual("time", "Time")
+					case "Long":
+						property = property.Int64()
+					case "Int":
+						property = property.Int()
+					case "Custom":
+						property = property.Interface()
+					}
+
+					group.Add(property)
+				}
+			})
+
+			for _, dependency := range readModel.Dependencies {
+				if dependency.Type == "INBOUND" && dependency.ElementType == "EVENT" {
+					for _, slices := range config.Slices {
+						for _, event := range slices.Events {
+							if event.ID == dependency.ID {
+								// outbound event.
+								eventsPackage, err := generator.ResolvePackagePath(fmt.Sprintf("gen/%s/events/%s.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(event.Title))))
+								if err != nil {
+									log.Fatal(err)
+								}
+								files[aggregateFile].ImportName(filepath.Dir(eventsPackage), "events")
+								files[aggregateFile].Line().Func().Params(Id("r").Op("*").Id(generator.ToCamelCase(readModel.Title)+"ReadModel")).
+									Id("On"+generator.ToCamelCase(dependency.Title)).Params(Id("ctx").Qual("context", "Context"), Id("ev").Op("*").Qual(filepath.Dir(eventsPackage), generator.ToCamelCase(dependency.Title))).Params(Error()).BlockFunc(func(group *Group) {
+									for _, field := range event.Fields {
+										group.Add(Id("r").Dot(generator.ToCamelCase(field.Name)).Op("=").Id("ev").Dot(generator.ToCamelCase(field.Name)))
+									}
+									group.Return().Nil()
+								})
+							}
+						}
+					}
+				}
+			}
+
+		}
+
+		//for i, slice := range config.Slices {
+		//	for i2, screen := range slice.Screens {
+		//
+		//	}
+		//}
+
+		for _, processor := range slice.Processors {
+			files[aggregateFile].Line().Type().Id(generator.ToCamelCase(processor.Title)).StructFunc(func(group *Group) {
+				for _, field := range processor.Fields {
+
+					property := Id(generator.ToCamelCase(field.Name))
+
+					if field.Cardinality != "Single" {
+						property = property.Index()
+					}
+
+					switch field.Type {
+					case "String":
+						property = property.String()
+					case "UUID":
+						property = property.Qual("github.com/google/uuid", "UUID")
+					case "Boolean":
+						property = property.Bool()
+					case "Double":
+						property = property.Float64()
+					case "Date":
+						property = property.Qual("time", "Time")
+					case "DateTime":
+						property = property.Qual("time", "Time")
+					case "Long":
+						property = property.Int64()
+					case "Int":
+						property = property.Int()
+					case "Custom":
+						property = property.Interface()
+					}
+
+					group.Add(property)
+				}
+			})
+
+		}
+	}
 
 	//log.Printf("Aggregate #%d: %s", i+1, slice)
 
