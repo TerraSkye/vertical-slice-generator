@@ -1,4 +1,4 @@
-package main
+package config
 
 type Configuration struct {
 	Slices     []Slices     `json:"slices"`

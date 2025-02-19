@@ -6,6 +6,7 @@ import (
 	"fmt"
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/generator"
+	config2 "github.com/terraskye/vertical-slice-generator/generator/config"
 	"io"
 	"log"
 	"os"
@@ -20,8 +21,8 @@ var (
 
 func main() {
 
-	//os.RemoveAll("gen")
-	var config Configuration
+	os.RemoveAll("gen")
+	var config config2.Configuration
 
 	if err := json.Unmarshal(configuration, &config); err != nil {
 		log.Fatal(err)
