@@ -3,7 +3,6 @@ module github.com/terraskye/vertical-slice-generator
 go 1.21.12
 
 require (
-	github.com/GabrielCarpr/cqrs v0.2.0
 	github.com/ThreeDotsLabs/watermill v1.4.4
 	github.com/dave/jennifer v1.7.1
 	github.com/google/uuid v1.6.0
