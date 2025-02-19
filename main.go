@@ -40,38 +40,53 @@ func main() {
 	slicesToGenerate := Checkboxes(
 		"Which slice would you like to generate", append([]string{"all"}, tasks...),
 	)
-	//fmt.Println(slicesToGenerate)
-
-	generateAll := slices.Contains(slicesToGenerate, "all")
+	if slices.Contains(slicesToGenerate, "all") {
+		slicesToGenerate = tasks[1:]
+	}
 
 	for _, sliceName := range slicesToGenerate {
-
-		//fmt.Println(sliceName)
 		for _, slice := range config.Slices {
 			if slice.Title == sliceName {
+				fmt.Printf("===== [slice: %s] =====\n", slice.Title)
 
-				fmt.Println("=== commands ===")
-				for _, command := range slice.Commands {
-					fmt.Println(command.Title)
-				}
-
-				fmt.Println("=== events ===")
-				for _, event := range slice.Events {
-					fmt.Println(event.Title)
-				}
-				fmt.Println("=== readmodel ===")
-				for _, readmodel := range slice.Readmodels {
-					fmt.Println(readmodel.Title)
-				}
-				fmt.Println("=== aggregates ===")
-
+				fmt.Println("> aggregate")
 				for _, aggregate := range slice.Aggregates {
-					fmt.Println(aggregate)
+					fmt.Println("\t- " + aggregate)
 				}
 
-				//fmt.Printf("commands : %s")
-				//slice.Commands
-				//fmt.Println(slice)
+				fmt.Println("> commands")
+				for _, command := range slice.Commands {
+					fmt.Println("\t- " + command.Title)
+				}
+				fmt.Println("> events")
+				for _, events := range slice.Events {
+					fmt.Println("\t- " + events.Title)
+				}
+				fmt.Println("> state change")
+				for _, command := range slice.Commands {
+					fmt.Println("\t- " + command.Title)
+				}
+				fmt.Println("> state view")
+				for _, readModel := range slice.Readmodels {
+					fmt.Println("\t- " + readModel.Title)
+				}
+				fmt.Println("> processors")
+				for _, processor := range slice.Processors {
+					if slices.ContainsFunc(processor.Dependencies, func(dependencie Dependencies) bool {
+						return dependencie.Type == "INBOUND" && dependencie.ElementType == "READMODEL"
+					}) {
+						fmt.Println("\t- automation")
+					}
+				}
+				fmt.Println("> commands")
+				for _, processor := range slice.Processors {
+					if !slices.ContainsFunc(processor.Dependencies, func(dependencie Dependencies) bool {
+						return dependencie.Type == "INBOUND" && dependencie.ElementType == "READMODEL"
+					}) {
+						fmt.Println("\t- translator")
+					}
+
+				}
 
 			}
 		}
