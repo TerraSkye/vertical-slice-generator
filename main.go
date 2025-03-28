@@ -144,6 +144,26 @@ func main() {
 					})
 
 					fmt.Println("\t- " + command.Title)
+
+					//handlerFile := fmt.Sprintf("gen/%s/handlers/%s.go", strings.ToLower(cfg.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(command.Title)))
+					//
+					//if _, ok := files[handlerFile]; !ok {
+					//	files[handlerFile] = generator.GetFile("handlers")
+					//}
+
+					//files[handlerFile].Func().Id("init").Call().Block(
+					//	Qual("github.com/terraskye/vertical-slice-implementation/cart/infrastructure", "RegisterCommand").Params(
+					//		Func().Params(Id("aggregate").Op("*").Qual("domain", generator.ToCamelCase(command.Aggregate))).
+					//			Func().Params(Id("ctx").Qual("context", "Context"),
+					//			Id("cmd").Op("*").Qual(commandPackage, generator.ToCamelCase(command.Title))).Params(Error()).Block(
+					//			Return(Func().Params(Id("ctx").Qual("context", "Context"),
+					//				Id("cmd").Op("*").Qual(commandPackage, generator.ToCamelCase(command.Title))).Params(Error()).Block(
+					//				Return(Id("aggregate").Dot(generator.ToCamelCase(command.Title)).Call(Id("ctx"), Id("cmd"))),
+					//			)),
+					//		),
+					//	),
+					//)
+
 				}
 				fmt.Println("> events")
 				for _, event := range slice.Events {
@@ -163,6 +183,23 @@ func main() {
 
 						//body.Return(Nil())
 					}).Line()
+
+					handlerFile := fmt.Sprintf("gen/%s/handlers/%s.go", strings.ToLower(cfg.CodeGen.Domain), strings.ToLower(generator.ToCamelCase(event.Title)))
+
+					if _, ok := files[handlerFile]; !ok {
+						files[handlerFile] = generator.GetFile("handlers")
+					}
+
+					files[handlerFile].Func().Id("init").Call().Block(
+						Qual("github.com/terraskye/vertical-slice-implementation/cart/infrastructure", "RegisterEvent").Params(
+							Func().Params(Id("aggregate").Op("*").Qual("domain", generator.ToCamelCase(event.Aggregate))).
+								Func().Params(Id("event").Op("*").Qual(eventsPackage, generator.ToCamelCase(event.Title))).Block(
+								Return(Func().Params(Id("event").Op("*").Qual(eventsPackage, generator.ToCamelCase(event.Title)))).Block(
+									Id("aggregate").Dot(generator.ToCamelCase("On" + event.Title)).Call(Id("event"))),
+							),
+						),
+					)
+
 				}
 
 				if commands := slice.Commands; len(commands) > 0 {
