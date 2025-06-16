@@ -17,6 +17,7 @@ func GetFile(tag string) *File {
 	f.ImportAlias("github.com/go-kit/kit/transport/http", "kithttp")
 	f.ImportName("github.com/go-kit/kit/endpoint", "endpoint")
 	f.ImportName("github.com/gorilla/mux", "mux")
+	f.ImportAlias("github.com/terraskye/eventsourcing", "cqrs")
 
 	return f
 }

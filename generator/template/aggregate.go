@@ -24,9 +24,7 @@ func (a aggregateTemplate) DefaultPath() string {
 
 func (a aggregateTemplate) Render(ctx context.Context) {
 	path := strings.Split(a.info.OutputPackageImport, "/")
-
 	f := NewFile(path[len(path)-1])
-
 	f.ImportName("github.com/google/uuid", "uuid")
 
 	// generate all aggregates
@@ -34,7 +32,7 @@ func (a aggregateTemplate) Render(ctx context.Context) {
 	//	aggregateFile := fmt.Sprintf("gen/%s/domain/%s.go", strings.ToLower(config.CodeGen.Domain), strings.ToLower(aggregate.Title))
 	//	files[aggregateFile] = generator.GetFile("domain")
 	//	files[aggregateFile].Type().Id(generator.ToCamelCase(aggregate.Title)).StructFunc(func(group *Group) {
-	//		for _, field := range aggregate.Fields {
+	//		for _, field := range aggregate.Field {
 	//			property := Id(generator.ToCamelCase(field.Name))
 	//			if field.Cardinality != "Single" {
 	//				property = property.Index()
@@ -81,4 +79,10 @@ func NewAggregateTemplate(info *GenerationInfo) Template {
 	return &aggregateTemplate{
 		info: info,
 	}
+}
+
+func (a aggregateTemplate) handler() {
+	//path := strings.Split(a.info.OutputPackageImport, "/")
+	//f := NewFile(path[len(path)-1])
+
 }

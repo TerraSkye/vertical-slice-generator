@@ -9,7 +9,12 @@ type Configuration struct {
 	CodeGen    CodeGen      `json:"codeGen"`
 	BoardID    string       `json:"boardId"`
 }
-type Fields struct {
+
+func (c Configuration) GetTriggeringEvents() {
+
+}
+
+type Field struct {
 	Name           string `json:"name"`
 	Type           string `json:"type"`
 	Example        string `json:"example"`
@@ -36,7 +41,7 @@ type Readmodels struct {
 	Context               string         `json:"context"`
 	Slice                 string         `json:"slice"`
 	Title                 string         `json:"title"`
-	Fields                []Fields       `json:"fields"`
+	Fields                Fields         `json:"fields"`
 	Type                  string         `json:"type"`
 	Description           string         `json:"description"`
 	Aggregate             string         `json:"aggregate"`
@@ -55,7 +60,7 @@ type Screens struct {
 	Context               string         `json:"context"`
 	Slice                 string         `json:"slice"`
 	Title                 string         `json:"title"`
-	Fields                []Fields       `json:"fields"`
+	Fields                Fields         `json:"fields"`
 	Type                  string         `json:"type"`
 	Description           string         `json:"description"`
 	Aggregate             string         `json:"aggregate"`
@@ -68,20 +73,20 @@ type Screens struct {
 	Prototype             Prototype      `json:"prototype"`
 }
 type Given struct {
-	Title    string   `json:"title"`
-	ID       string   `json:"id"`
-	Index    int      `json:"index"`
-	Type     string   `json:"type"`
-	Fields   []Fields `json:"fields"`
-	LinkedID string   `json:"linkedId"`
+	Title    string `json:"title"`
+	ID       string `json:"id"`
+	Index    int    `json:"index"`
+	Type     string `json:"type"`
+	Fields   Fields `json:"fields"`
+	LinkedID string `json:"linkedId"`
 }
 type Then struct {
-	Title    string   `json:"title"`
-	ID       string   `json:"id"`
-	Index    int      `json:"index"`
-	Type     string   `json:"type"`
-	Fields   []Fields `json:"fields"`
-	LinkedID string   `json:"linkedId"`
+	Title    string `json:"title"`
+	ID       string `json:"id"`
+	Index    int    `json:"index"`
+	Type     string `json:"type"`
+	Fields   Fields `json:"fields"`
+	LinkedID string `json:"linkedId"`
 }
 type Comments struct {
 	Description string `json:"description"`
@@ -108,12 +113,13 @@ type Slices struct {
 	Actors         []any            `json:"actors"`
 	Aggregates     []string         `json:"aggregates"`
 }
+
 type Aggregates struct {
-	ID      string   `json:"id"`
-	Title   string   `json:"title"`
-	Fields  []Fields `json:"fields"`
-	Service any      `json:"service"`
-	Type    string   `json:"type"`
+	ID      string `json:"id"`
+	Title   string `json:"title"`
+	Fields  Fields `json:"fields"`
+	Service any    `json:"service"`
+	Type    string `json:"type"`
 }
 type CodeGen struct {
 	Application string `json:"application"`
@@ -128,7 +134,7 @@ type Event struct {
 	Context               string         `json:"context"`
 	Slice                 string         `json:"slice"`
 	Title                 string         `json:"title"`
-	Fields                []Fields       `json:"fields"`
+	Fields                Fields         `json:"fields"`
 	Type                  string         `json:"type"`
 	Description           string         `json:"description"`
 	Aggregate             string         `json:"aggregate"`
@@ -148,7 +154,7 @@ type Command struct {
 	Context               string         `json:"context"`
 	Slice                 string         `json:"slice"`
 	Title                 string         `json:"title"`
-	Fields                []Fields       `json:"fields"`
+	Fields                Fields         `json:"fields"`
 	Type                  string         `json:"type"`
 	Description           string         `json:"description"`
 	Aggregate             string         `json:"aggregate"`
@@ -168,7 +174,7 @@ type Processor struct {
 	Context               string         `json:"context"`
 	Slice                 string         `json:"slice"`
 	Title                 string         `json:"title"`
-	Fields                []Fields       `json:"fields"`
+	Fields                Fields         `json:"fields"`
 	Type                  string         `json:"type"`
 	Description           string         `json:"description"`
 	Aggregate             string         `json:"aggregate"`
@@ -179,4 +185,49 @@ type Processor struct {
 	Service               any            `json:"service"`
 	CreatesAggregate      bool           `json:"createsAggregate"`
 	Prototype             Prototype      `json:"prototype"`
+}
+
+type Fields []Field
+
+func (f Fields) IDAttributes() []Field {
+
+	idAttributes := make([]Field, 0)
+
+	for _, field := range f {
+
+		if field.IDAttribute {
+			idAttributes = append(idAttributes, field)
+		}
+	}
+
+	if len(idAttributes) == 0 {
+		for _, field := range f {
+			if field.Name == "aggregateId" {
+				idAttributes = append(idAttributes, field)
+			}
+		}
+	}
+	return idAttributes
+}
+
+func (f Fields) DataAttributes() []Field {
+
+	idAttributes := make([]Field, 0)
+
+	for _, field := range f {
+		if !field.IDAttribute {
+			idAttributes = append(idAttributes, field)
+		}
+	}
+
+	if len(idAttributes) == len(f) {
+
+		for idx := len(idAttributes) - 1; idx >= 0; idx-- {
+			if idAttributes[idx].Name == "aggregateId" {
+				idAttributes = append(idAttributes[:idx], idAttributes[idx+1:]...)
+			}
+		}
+	}
+
+	return idAttributes
 }
