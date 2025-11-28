@@ -23,7 +23,7 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 	z := NewFile("domain")
 	z.ImportAlias(PackageEventSourcing, "cqrs")
 
-	eventsPackage, err := ResolvePackagePath(t.info.OutputFilePath + "/events")
+	eventsPackage, err := ResolvePackagePath(t.info.OutputFilePath + "/../events")
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +53,7 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 		Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository"),
 	)
 
-	z.Line().Func().Id("NewProjector").Params(Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository")).Params(Op("*").Qual(PackageEventSourcing, "EventGroupProcessor")).BlockFunc(func(group *Group) {
+	z.Line().Func().Id("NewProjector").Params(Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository")).Params(Qual(PackageEventSourcing, "EventHandler")).BlockFunc(func(group *Group) {
 		group.Id("p").Op(":=").Op("&").Id("projector").Block(
 			Dict{
 				Id("repository"): Id("repository").Op(","),
@@ -61,9 +61,8 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 
 		group.Return(Qual(PackageEventSourcing, "NewEventGroupProcessor").
 			Call(ListFunc(func(group *Group) {
-				group.Line().Lit(eventmodel.SliceTitle(t.info.Slice.Title))
 				for _, event := range inboundEvents {
-					group.Line().Qual(PackageEventSourcing, "NewGroupEventHandler").Call(Id("p").Dot("On" + eventmodel.ProcessTitle(event.Title)))
+					group.Line().Qual(PackageEventSourcing, "OnEvent").Call(Id("p").Dot("On" + eventmodel.ProcessTitle(event.Title)))
 				}
 			})))
 	})

@@ -32,7 +32,7 @@ func (t *queryHandlerTemplate) Render(ctx context.Context) write_strategy.Render
 
 	}
 
-	z.Line().Type().Id("Query").Add(template.FieldsStruct(eventmodel.Fields(t.readmodel.Fields).IDAttributes()))
+	z.Line().Type().Id("Query").Add(template.FieldsStruct(eventmodel.Fields(t.readmodel.Fields).IDAttributes(), false))
 
 	z.Line().Add(Func().Params(Id("q").Id("Query")).Id("ID").Params().Params(Index().Byte()).Block(Return(Nil())))
 

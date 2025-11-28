@@ -81,7 +81,7 @@ func (t *aggregateTemplate) Render(ctx context.Context) write_strategy.Renderer 
 				for _, s := range command.ProducesEvents() {
 					event := t.info.Model.FindEventByID(s)
 					group.Id(strings.ToLower(string(t.aggregateName[0]))).Dot("AppendEvent").
-						Call(Id("ctx"), Op("&").Qual(eventsPackage, eventmodel.ProcessTitle(event.Title)).Block(DictFunc(func(dict Dict) {
+						Call(Op("&").Qual(eventsPackage, eventmodel.ProcessTitle(event.Title)).Block(DictFunc(func(dict Dict) {
 							for _, field := range event.Fields {
 								property := Id(eventmodel.ProcessTitle(field.Name))
 								//if field.Cardinality != "Single" {
@@ -104,7 +104,7 @@ func (t *aggregateTemplate) Render(ctx context.Context) write_strategy.Renderer 
 
 	for _, event := range t.info.Slice.Events {
 		if !mstrings.IsInStringSlice("On"+eventmodel.ProcessTitle(event.Title), t.alreadyRenderedMethods) {
-			f.Line().Add(
+			f.Line().Line().Add(
 				Func().Params(
 					Id(strings.ToLower(string(t.aggregateName[0]))).Op("*").Id(eventmodel.AggregateTitle(t.aggregateName))).Id("On" + eventmodel.ProcessTitle(event.Title)).Params(
 					// function params

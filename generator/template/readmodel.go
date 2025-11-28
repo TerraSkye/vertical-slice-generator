@@ -24,7 +24,7 @@ func (t *readModelTemplate) Render(ctx context.Context) write_strategy.Renderer 
 	z := NewFile("domain")
 	z.ImportAlias(PackageEventSourcing, "cqrs")
 
-	z.Line().Type().Id(eventmodel.ProcessTitle(t.readmodel.Title)).Add(template.FieldsStruct(t.readmodel.Fields))
+	z.Line().Type().Id(eventmodel.ProcessTitle(t.readmodel.Title)).Add(template.FieldsStruct(t.readmodel.Fields, false))
 
 	return z
 }

@@ -1,6 +1,9 @@
 package eventmodel
 
-import "strings"
+import (
+	"regexp"
+	"strings"
+)
 
 func AggregateTitle(title string) string {
 	titleElements := ProcessTitle(title)
@@ -103,4 +106,18 @@ func ProcessTitle(title string) string {
 		parts[i] = CapitalizeFirstCharacter(clean)
 	}
 	return strings.Join(parts, "")
+}
+
+func SnakeCase(name string) string {
+	name = ProcessTitle(name)
+	//matchFirstCap := regexp.MustCompile("(.)([A-Z][a-z]+)")
+	// Insert an underscore before capital letters, except at the start
+	re := regexp.MustCompile(`([a-z0-9])([A-Z])`)
+	snake := re.ReplaceAllString(name, "${1}_${2}")
+
+	// Handle consecutive capitals (e.g., "HTTPRequest" → "http_request")
+	re2 := regexp.MustCompile(`([A-Z])([A-Z][a-z])`)
+	snake = re2.ReplaceAllString(snake, "${1}_${2}")
+
+	return strings.ToLower(snake)
 }

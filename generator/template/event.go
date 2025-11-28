@@ -2,11 +2,12 @@ package template
 
 import (
 	"context"
+	"strings"
+
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"github.com/terraskye/vertical-slice-generator/generator/write_strategy"
 	"github.com/terraskye/vertical-slice-generator/template"
-	"strings"
 )
 
 type eventTemplate struct {
@@ -27,7 +28,10 @@ func (t *eventTemplate) Render(ctx context.Context) write_strategy.Renderer {
 
 	z.Var().Id("_").Qual(PackageEventSourcing, "Event").Op("=").Call(Op("*").Id(eventmodel.ProcessTitle(t.event.Title))).Call(Nil())
 
-	z.Line().Type().Id(eventmodel.ProcessTitle(t.event.Title)).Add(template.FieldsStruct(t.event.Fields))
+	z.Func().Id("init").Call().BlockFunc(func(group *Group) {
+		group.Qual(PackageEventSourcing, "RegisterEventByType").Call(Op("&").Id(eventmodel.ProcessTitle(t.event.Title)).Block())
+	})
+	z.Line().Type().Id(eventmodel.ProcessTitle(t.event.Title)).Add(template.FieldsStruct(t.event.Fields, false))
 
 	z.Func().Params(
 		Id(strings.ToLower(string(t.event.Title[0]))).Op("*").Id(eventmodel.ProcessTitle(t.event.Title))).Id("AggregateID").Params().Params(String()).Block(
@@ -48,11 +52,17 @@ func (t *eventTemplate) Render(ctx context.Context) write_strategy.Renderer {
 		}),
 	)
 
+	z.Func().Params(
+		Id(strings.ToLower(string(t.event.Title[0]))).Op("*").Id(eventmodel.ProcessTitle(t.event.Title))).Id("EventType").Params().Params(String()).Block(
+		Return(Qual(PackageEventSourcing, "TypeName")).Call(Id(strings.ToLower(string(t.event.Title[0])))),
+	)
+
 	return z
 }
 
 func (t *eventTemplate) DefaultPath() string {
-	return "events/" + eventmodel.ScreenTitle(t.event.Title) + ".go"
+
+	return "../events/" + eventmodel.SnakeCase(t.event.Title) + ".go"
 }
 
 func (t *eventTemplate) Prepare(ctx context.Context) error {
