@@ -5,7 +5,7 @@ import (
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 )
 
-func FieldsStruct(fields []eventmodel.Field) *Statement {
+func FieldsStruct(fields []eventmodel.Field, withJsonTags bool) *Statement {
 	return StructFunc(func(group *Group) {
 		for _, field := range fields {
 			property := Id(eventmodel.ProcessTitle(field.Name))
@@ -21,6 +21,8 @@ func FieldsStruct(fields []eventmodel.Field) *Statement {
 				property = property.Bool()
 			case "Double":
 				property = property.Float64()
+			case "Decimal":
+				property = property.Float64()
 			case "Date":
 				property = property.Qual("time", "Time")
 			case "DateTime":
@@ -30,7 +32,14 @@ func FieldsStruct(fields []eventmodel.Field) *Statement {
 			case "Int":
 				property = property.Int()
 			case "Custom":
-				property = property.Interface()
+				property = property.Add(FieldsStruct(field.SubFields, withJsonTags))
+			default:
+				property = property.Any()
+			}
+
+			if withJsonTags {
+
+				property.Tag(map[string]string{"json": eventmodel.SnakeCase(eventmodel.ProcessTitle(field.Name))})
 			}
 			group.Add(property)
 		}

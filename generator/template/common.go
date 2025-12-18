@@ -3,13 +3,14 @@ package template
 import (
 	"context"
 	"fmt"
-	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
+
+	"github.com/terraskye/vertical-slice-generator/eventmodel"
 
 	. "github.com/dave/jennifer/jen"
 	mstrings "github.com/devimteam/microgen/generator/strings"
@@ -82,13 +83,13 @@ func ResolvePackagePath(outPath string) (string, error) {
 	if gopath == "" {
 		return "", fmt.Errorf("GOPATH is empty")
 	}
-	slog.Info("GOPATH:", gopath)
+	slog.Info("GOPATH:", "root", gopath)
 
 	absOutPath, err := filepath.Abs(outPath)
 	if err != nil {
 		return "", err
 	}
-	slog.Info("Resolving path:", absOutPath)
+	slog.Info("Resolving path:", "filename", absOutPath)
 
 	for _, path := range strings.Split(gopath, ":") {
 		gopathSrc := filepath.Join(path, "src")

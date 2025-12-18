@@ -3,12 +3,13 @@ package generator
 import (
 	"context"
 	"fmt"
-	"github.com/terraskye/vertical-slice-generator/eventmodel"
-	"github.com/terraskye/vertical-slice-generator/generator/template"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/terraskye/vertical-slice-generator/eventmodel"
+	"github.com/terraskye/vertical-slice-generator/generator/template"
 )
 
 func ResolvePackagePath(outPath string) (string, error) {
@@ -42,6 +43,7 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 		OutputFilePath: absOutPath,
 		Slice:          slice,
 	}
+	var inboundEvents []*eventmodel.Event
 
 	for _, command := range slice.Commands {
 		{
@@ -53,10 +55,8 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 			}
 			units = append(units, unit)
 		}
-
 		{
-			t := template.NewCommandHandlerTemplate(info, &command)
-
+			t := template.NewCommandResourceTemplate(info, &command)
 			unit, err := NewGenUnit(ctx, t, absOutPath)
 			if err != nil {
 				return nil, fmt.Errorf("%s: %v", absOutPath, err)
@@ -65,47 +65,26 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 		}
 	}
 
-	for _, event := range slice.Events {
-
-		t := template.NewEventTemplate(info, &event)
-
-		unit, err := NewGenUnit(ctx, t, absOutPath)
-		if err != nil {
-			return nil, fmt.Errorf("%s: %v", absOutPath, err)
-		}
-		units = append(units, unit)
-
-		{
-			t := template.NewEventHandlerTemplate(info, &event)
-
-			unit, err := NewGenUnit(ctx, t, absOutPath)
-			if err != nil {
-				return nil, fmt.Errorf("%s: %v", absOutPath, err)
-			}
-			units = append(units, unit)
-		}
-	}
-
-	for _, aggregateName := range slice.Aggregates {
-		{
-			t := template.NewAggregateTemplate(info, aggregateName)
-
-			unit, err := NewGenUnit(ctx, t, absOutPath)
-			if err != nil {
-				return nil, fmt.Errorf("%s: %v", absOutPath, err)
-			}
-			units = append(units, unit)
-		}
-		{
-			t := template.NewAggregateHandlerTemplate(info, aggregateName)
-
-			unit, err := NewGenUnit(ctx, t, absOutPath)
-			if err != nil {
-				return nil, fmt.Errorf("%s: %v", absOutPath, err)
-			}
-			units = append(units, unit)
-		}
-	}
+	//for _, aggregateName := range slice.Aggregates {
+	//	{
+	//		t := template.NewAggregateTemplate(info, aggregateName)
+	//
+	//		unit, err := NewGenUnit(ctx, t, absOutPath)
+	//		if err != nil {
+	//			return nil, fmt.Errorf("%s: %v", absOutPath, err)
+	//		}
+	//		units = append(units, unit)
+	//	}
+	//	{
+	//		t := template.NewAggregateHandlerTemplate(info, aggregateName)
+	//
+	//		unit, err := NewGenUnit(ctx, t, absOutPath)
+	//		if err != nil {
+	//			return nil, fmt.Errorf("%s: %v", absOutPath, err)
+	//		}
+	//		units = append(units, unit)
+	//	}
+	//}
 
 	for _, readModel := range slice.Readmodels {
 		{
@@ -131,6 +110,7 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 			units = append(units, unit)
 
 		}
+
 		{
 
 			t := template.NewQueryHandlerTemplate(info, &readModel)
@@ -143,8 +123,61 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 
 		}
 
+		{
+			for _, dependency := range readModel.Dependencies {
+				if dependency.Type == "INBOUND" && dependency.ElementType == "EVENT" {
+					inboundEvents = append(inboundEvents, model.FindEventByID(dependency.ID))
+
+				}
+			}
+		}
+
+		//TODO have to write the events that are dependency as well. even though they are not in this slice.
 	}
 
+	for _, event := range inboundEvents {
+
+		t := template.NewEventTemplate(info, event)
+
+		unit, err := NewGenUnit(ctx, t, absOutPath)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %v", absOutPath, err)
+		}
+		units = append(units, unit)
+
+		//{
+		//	t := template.NewEventHandlerTemplate(info, event)
+		//
+		//	unit, err := NewGenUnit(ctx, t, absOutPath)
+		//	if err != nil {
+		//		return nil, fmt.Errorf("%s: %v", absOutPath, err)
+		//	}
+		//	units = append(units, unit)
+		//}
+	}
+
+	for _, event := range slice.Events {
+
+		t := template.NewEventTemplate(info, &event)
+
+		unit, err := NewGenUnit(ctx, t, absOutPath)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %v", absOutPath, err)
+		}
+		units = append(units, unit)
+
+		//{
+		//	t := template.NewEventHandlerTemplate(info, &event)
+		//
+		//	unit, err := NewGenUnit(ctx, t, absOutPath)
+		//	if err != nil {
+		//		return nil, fmt.Errorf("%s: %v", absOutPath, err)
+		//	}
+		//	units = append(units, unit)
+		//}
+	}
+
+	//units = []*GenerationUnit{}
 	{
 		t := template.NewOpenApiTemplate(info)
 
@@ -154,47 +187,6 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 		}
 		units = append(units, unit)
 	}
-
-	//if len(slice.Commands) > 0 {
-	//	// this is a state change
-	//	{
-	//		t := template.NewStateChangeTemplate(info)
-	//
-	//		unit, err := NewGenUnit(ctx, t, absOutPath)
-	//		if err != nil {
-	//			return nil, fmt.Errorf("%s: %v", absOutPath, err)
-	//		}
-	//		units = append(units, unit)
-	//	}
-	//}
-
-	//lg.Logger.Logln(3, "\nGeneration Info:", info.String())
-	///*stubSvc, err := NewGenUnit(ctx, template.NewStubInterfaceTemplate(info), absOutPath)
-	//if err != nil {
-	//	return nil, err
-	//}
-	//units = append(units, stubSvc)*/
-	//
-	//genTags := mstrings.FetchTags(iface.Docs, TagMark+MicrogenMainTag)
-	//lg.Logger.Logln(2, "Tags:", strings.Join(genTags, ", "))
-	//uniqueTemplate := make(map[string]template.Template)
-	//for _, tag := range genTags {
-	//	templates := tagToTemplate(tag, info)
-	//	if templates == nil {
-	//		lg.Logger.Logln(1, "Warning: Unexpected tag", tag)
-	//		continue
-	//	}
-	//	for _, t := range templates {
-	//		uniqueTemplate[t.DefaultPath()] = t
-	//	}
-	//}
-	//for _, t := range uniqueTemplate {
-	//	unit, err := NewGenUnit(ctx, t, absOutPath)
-	//	if err != nil {
-	//		return nil, fmt.Errorf("%s: %v", absOutPath, err)
-	//	}
-	//	units = append(units, unit)
-	//}
 
 	return units, nil
 }

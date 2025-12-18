@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"github.com/terraskye/vertical-slice-generator/generator/write_strategy"
@@ -53,7 +54,7 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 		Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository"),
 	)
 
-	z.Line().Func().Id("NewProjector").Params(Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository")).Params(Op("*").Qual(PackageEventSourcing, "EventGroupProcessor")).BlockFunc(func(group *Group) {
+	z.Line().Func().Id("NewProjector").Params(Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository")).Params(Qual(PackageEventSourcing, "EventGroupProcessor")).BlockFunc(func(group *Group) {
 		group.Id("p").Op(":=").Op("&").Id("projector").Block(
 			Dict{
 				Id("repository"): Id("repository").Op(","),
@@ -61,9 +62,8 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 
 		group.Return(Qual(PackageEventSourcing, "NewEventGroupProcessor").
 			Call(ListFunc(func(group *Group) {
-				group.Line().Lit(eventmodel.SliceTitle(t.info.Slice.Title))
 				for _, event := range inboundEvents {
-					group.Line().Qual(PackageEventSourcing, "NewGroupEventHandler").Call(Id("p").Dot("On" + eventmodel.ProcessTitle(event.Title)))
+					group.Line().Qual(PackageEventSourcing, "OnEvent").Call(Id("p").Dot("On" + eventmodel.ProcessTitle(event.Title)))
 				}
 			})))
 	})
@@ -105,7 +105,7 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 }
 
 func (t *projectorTemplate) DefaultPath() string {
-	return "/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/projector.go"
+	return "slices/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/projector.go"
 }
 
 func (t *projectorTemplate) Prepare(ctx context.Context) error {

@@ -2,6 +2,7 @@ package eventmodel
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -15,15 +16,16 @@ type EventModel struct {
 	BoardID    string      `json:"boardId"`
 }
 type Field struct {
-	Name           string `json:"name"`
-	Type           string `json:"type"`
-	Example        string `json:"example"`
-	Mapping        string `json:"mapping"`
-	Optional       bool   `json:"optional"`
-	Generated      bool   `json:"generated"`
-	Cardinality    string `json:"cardinality"`
-	IDAttribute    bool   `json:"idAttribute"`
-	ExcludeFromAPI bool   `json:"excludeFromApi"`
+	Name           string  `json:"name"`
+	Type           string  `json:"type"`
+	SubFields      []Field `json:"subfields"`
+	Example        string  `json:"example"`
+	Mapping        string  `json:"mapping"`
+	Optional       bool    `json:"optional"`
+	Generated      bool    `json:"generated"`
+	Cardinality    string  `json:"cardinality"`
+	IDAttribute    bool    `json:"idAttribute"`
+	ExcludeFromAPI bool    `json:"excludeFromApi"`
 }
 type Dependencies struct {
 	ID          string `json:"id"`
@@ -377,4 +379,39 @@ func (f Fields) DataAttributes() []Field {
 	}
 
 	return idAttributes
+}
+
+func SortFields(fields []Field) {
+	sort.SliceStable(fields, func(i, j int) bool {
+		a, b := fields[i], fields[j]
+
+		// 1️⃣ ID attributes first
+		if a.IDAttribute != b.IDAttribute {
+			return a.IDAttribute
+		}
+
+		// 2️⃣ No cardinality before having one
+		hasCardA := a.Cardinality != ""
+		hasCardB := b.Cardinality != ""
+		if hasCardA != hasCardB {
+			return !hasCardA // no cardinality first
+		}
+
+		// 3️⃣ No subfields before having subfields
+		hasSubA := len(a.SubFields) > 0
+		hasSubB := len(b.SubFields) > 0
+		if hasSubA != hasSubB {
+			return !hasSubA
+		}
+
+		// 4️⃣ Alphabetical by name if otherwise equal
+		return a.Name < b.Name
+	})
+
+	// Recurse into subfields too
+	for i := range fields {
+		if len(fields[i].SubFields) > 0 {
+			SortFields(fields[i].SubFields)
+		}
+	}
 }
