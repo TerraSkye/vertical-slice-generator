@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"github.com/terraskye/vertical-slice-generator/generator/write_strategy"
@@ -30,7 +31,7 @@ func (t *readModelTemplate) Render(ctx context.Context) write_strategy.Renderer 
 }
 
 func (t *readModelTemplate) DefaultPath() string {
-	return "/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/readmodel.go"
+	return "slices/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/readmodel.go"
 }
 
 func (t *readModelTemplate) Prepare(ctx context.Context) error {

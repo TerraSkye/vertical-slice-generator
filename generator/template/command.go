@@ -2,11 +2,12 @@ package template
 
 import (
 	"context"
+	"strings"
+
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"github.com/terraskye/vertical-slice-generator/generator/write_strategy"
 	"github.com/terraskye/vertical-slice-generator/template"
-	"strings"
 )
 
 type commandTemplate struct {
@@ -25,7 +26,7 @@ func (t *commandTemplate) Render(ctx context.Context) write_strategy.Renderer {
 	z := NewFile(eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))
 	z.ImportAlias(PackageEventSourcing, "cqrs")
 
-	eventPackage, err := ResolvePackagePath(t.info.OutputFilePath + "/../events")
+	eventPackage, err := ResolvePackagePath(t.info.OutputFilePath + "/events")
 	if err != nil {
 		panic(err)
 	}
@@ -43,7 +44,7 @@ func (t *commandTemplate) Render(ctx context.Context) write_strategy.Renderer {
 
 			if idAttributeFields := eventmodel.Fields(t.command.Fields).IDAttributes(); len(idAttributeFields) > 0 {
 
-				v := Id(strings.ToLower(string(t.command.Title[0]))).Dot(eventmodel.ProcessTitle(idAttributeFields[0].Name))
+				v := Id("c ").Dot(eventmodel.ProcessTitle(idAttributeFields[0].Name))
 
 				if idAttributeFields[0].Type == "UUID" {
 					// in case of an uuid we need to cast it to a string.
@@ -125,7 +126,7 @@ func (t *commandTemplate) Render(ctx context.Context) write_strategy.Renderer {
 }
 
 func (t *commandTemplate) DefaultPath() string {
-	return eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/command.go"
+	return "slices/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/command.go"
 }
 
 func (t *commandTemplate) Prepare(ctx context.Context) error {

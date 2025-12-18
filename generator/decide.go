@@ -3,12 +3,13 @@ package generator
 import (
 	"context"
 	"fmt"
-	"github.com/terraskye/vertical-slice-generator/eventmodel"
-	"github.com/terraskye/vertical-slice-generator/generator/template"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/terraskye/vertical-slice-generator/eventmodel"
+	"github.com/terraskye/vertical-slice-generator/generator/template"
 )
 
 func ResolvePackagePath(outPath string) (string, error) {
@@ -54,29 +55,8 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 			}
 			units = append(units, unit)
 		}
-		//
-		//{
-		//	t := template.NewCommandHandlerTemplate(info, &command)
-		//
-		//	unit, err := NewGenUnit(ctx, t, absOutPath)
-		//	if err != nil {
-		//		return nil, fmt.Errorf("%s: %v", absOutPath, err)
-		//	}
-		//	units = append(units, unit)
-		//}
-
-		//{
-		//	t := template.NewCommandServiceTemplate(info, &command)
-		//
-		//	unit, err := NewGenUnit(ctx, t, absOutPath)
-		//	if err != nil {
-		//		return nil, fmt.Errorf("%s: %v", absOutPath, err)
-		//	}
-		//	units = append(units, unit)
-		//}
 		{
 			t := template.NewCommandResourceTemplate(info, &command)
-
 			unit, err := NewGenUnit(ctx, t, absOutPath)
 			if err != nil {
 				return nil, fmt.Errorf("%s: %v", absOutPath, err)
@@ -197,6 +177,7 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 		//}
 	}
 
+	//units = []*GenerationUnit{}
 	{
 		t := template.NewOpenApiTemplate(info)
 

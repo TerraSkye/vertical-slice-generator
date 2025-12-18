@@ -13,24 +13,20 @@ import (
 	"github.com/terraskye/vertical-slice-generator/template"
 )
 
-type commandResourceTemplate struct {
+type screenResourceTemplate struct {
 	info    *GenerationInfo
 	command *eventmodel.Command
 }
 
-func NewCommandResourceTemplate(info *GenerationInfo, command *eventmodel.Command) Template {
-	return &commandResourceTemplate{
+func NewScreenResourceTemplate(info *GenerationInfo, command *eventmodel.Command) Template {
+	return &screenResourceTemplate{
 		info:    info,
 		command: command,
 	}
 }
 
-func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Renderer {
+func (t *screenResourceTemplate) Render(ctx context.Context) write_strategy.Renderer {
 	commandPackage, err := ResolvePackagePath(t.info.OutputFilePath + "/domain/commands")
-	if err != nil {
-		panic(err)
-	}
-	aggregatePackage, err := ResolvePackagePath(t.info.OutputFilePath + "/domain")
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +34,6 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 	z := NewFile(eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))
 	z.ImportAlias(PackageEventSourcing, "cqrs")
 	z.ImportName(commandPackage, "")
-	z.ImportName(aggregatePackage, "")
 
 	z.ImportAlias("github.com/go-kit/kit/transport/http", "kithttp")
 	z.ImportAlias("github.com/afosto/go-json", "json")
@@ -76,7 +71,11 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 		Id("store").Qual(PackageEventSourcing, "EventStore"),
 	).Params(Qual("net/http", "Handler")).BlockFunc(func(group *Group) {
 		//TODO paramter filter for type.
-		group.Id("r").Dot("Methods").Call(Lit("POST")).Dot("Path").Call(Id(fmt.Sprintf("\"debug/%s/{id}/%s\"", strings.ToLower(t.info.Model.CodeGen.Domain), slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", ""))))).Dot("Handler").Call(Line().Qual("github.com/go-kit/kit/transport/http", "NewServer").Params(
+		group.Id("r").Dot("Methods").Call(Lit("POST")).Dot("Path").Call(Id(
+			fmt.Sprintf("\"%s/{id}/%s\"",
+				strings.ToLower(t.info.Model.CodeGen.Domain),
+				slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")),
+			))).Dot("Handler").Call(Line().Qual("github.com/go-kit/kit/transport/http", "NewServer").Params(
 			Func().Params(Id("ctx").Qual("context", "Context"), Id("request").Any()).Params(Any(), Error()).BlockFunc(func(group *Group) {
 
 				group.Id("handler").Op(":=").Id("NewCommandHandler").Call(Id("store"))
@@ -179,14 +178,14 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 	return z
 }
 
-func (t *commandResourceTemplate) DefaultPath() string {
-	return "slices/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/http.go"
+func (t *screenResourceTemplate) DefaultPath() string {
+	return "screens/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/http.go"
 }
 
-func (t *commandResourceTemplate) Prepare(ctx context.Context) error {
+func (t *screenResourceTemplate) Prepare(ctx context.Context) error {
 	return nil
 }
 
-func (t *commandResourceTemplate) ChooseStrategy(ctx context.Context) (write_strategy.Strategy, error) {
+func (t *screenResourceTemplate) ChooseStrategy(ctx context.Context) (write_strategy.Strategy, error) {
 	return write_strategy.NewCreateFileStrategy(t.info.OutputFilePath, t.DefaultPath()), nil
 }

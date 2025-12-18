@@ -5,20 +5,22 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/AlecAivazis/survey/v2"
-	"github.com/terraskye/vertical-slice-generator/eventmodel"
-	"github.com/terraskye/vertical-slice-generator/generator"
-	"github.com/terraskye/vertical-slice-generator/generator/template"
-	"github.com/vetcher/go-astra"
 	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+
+	"github.com/AlecAivazis/survey/v2"
+	"github.com/terraskye/vertical-slice-generator/eventmodel"
+	"github.com/terraskye/vertical-slice-generator/generator"
+	"github.com/terraskye/vertical-slice-generator/generator/template"
+	"github.com/vetcher/go-astra"
 )
 
 var (
 	flagFileName  = flag.String("file", "config.json", "Path to input file with interface.")
+	flagSliceName = flag.String("slice", "", "The name of slice to generate.")
 	flagOutputDir = flag.String("out", ".", "Output directory.")
 	flagHelp      = flag.Bool("help", false, "Show help.")
 	flagVerbose   = flag.Int("v", 1, "Sets vertical slice  eventmodel verbose level.")
@@ -61,11 +63,16 @@ func main() {
 	for i, slice := range cfg.Slices {
 		tasks[i] = slice.Title
 	}
-	slicesToGenerate := Checkboxes(
-		"Which slice would you like to generate", append([]string{"all"}, tasks...),
-	)
 
-	//slicesToGenerate := []string{"all"}
+	slicesToGenerate := make([]string, 0)
+	if flagSliceName != nil && *flagSliceName != "" {
+		slicesToGenerate = append(slicesToGenerate, *flagSliceName)
+	} else {
+		slicesToGenerate = Checkboxes(
+			"Which slice would you like to generate", append([]string{"all"}, tasks...),
+		)
+	}
+
 	if slices.Contains(slicesToGenerate, "all") {
 		slicesToGenerate = tasks[1:]
 	}
@@ -88,22 +95,26 @@ func main() {
 
 		slice := cfg.FindSlice(sliceName)
 
+		slog.Info("---------------------------------" + sliceName + "-------------------------------------------")
+
 		units, err := generator.ListTemplatesForGen(ctx, &cfg, slice, absOutputDir+"/"+strings.ToLower(cfg.CodeGen.Domain))
 
 		if err != nil {
-			logger.Error("failed preparing context %v", err)
+			logger.Error("failed preparing context", err)
 			os.Exit(1)
 		}
 
 		for _, unit := range units {
+			fmt.Println(unit.Path())
 			if err := unit.Generate(ctx); err != nil {
-				logger.Error("failed preparing context %v", err)
+				logger.Error("failed preparing context", err)
 				fmt.Println(err)
 				os.Exit(1)
 			}
 
 		}
 
+		//time.Sleep(time.Second)
 	}
 
 }

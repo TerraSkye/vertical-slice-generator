@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"github.com/terraskye/vertical-slice-generator/generator/write_strategy"
@@ -43,7 +44,7 @@ func (t *queryHandlerTemplate) Render(ctx context.Context) write_strategy.Render
 	z.Line().Func().Id("NewQueryHandler").Params(
 		Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository")).
 		Params(
-			Qual(PackageEventSourcing, "GenericQueryHandler").Types(Id("Query"), Op("*").Id(eventmodel.ProcessTitle(t.readmodel.Title))),
+			Qual(PackageEventSourcing, "QueryHandler").Types(Id("Query"), Op("*").Id(eventmodel.ProcessTitle(t.readmodel.Title))),
 		).BlockFunc(func(group *Group) {
 		group.Return(Op("&").Id("QueryHandler").Block(
 			Dict{
@@ -67,7 +68,7 @@ func (t *queryHandlerTemplate) Render(ctx context.Context) write_strategy.Render
 }
 
 func (t *queryHandlerTemplate) DefaultPath() string {
-	return "/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/query.go"
+	return "slices/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/query.go"
 }
 
 func (t *queryHandlerTemplate) Prepare(ctx context.Context) error {

@@ -29,7 +29,7 @@ func (t *eventTemplate) Render(ctx context.Context) write_strategy.Renderer {
 	z.Var().Id("_").Qual(PackageEventSourcing, "Event").Op("=").Call(Op("*").Id(eventmodel.ProcessTitle(t.event.Title))).Call(Nil())
 
 	z.Func().Id("init").Call().BlockFunc(func(group *Group) {
-		group.Qual(PackageEventSourcing, "RegisterEventByType").Call(Op("&").Id(eventmodel.ProcessTitle(t.event.Title)).Block())
+		group.Qual(PackageEventSourcing, "RegisterEvent").Call(Op("&").Id(eventmodel.ProcessTitle(t.event.Title)).Block())
 	})
 	z.Line().Type().Id(eventmodel.ProcessTitle(t.event.Title)).Add(template.FieldsStruct(t.event.Fields, false))
 
@@ -62,7 +62,7 @@ func (t *eventTemplate) Render(ctx context.Context) write_strategy.Renderer {
 
 func (t *eventTemplate) DefaultPath() string {
 
-	return "../events/" + eventmodel.SnakeCase(t.event.Title) + ".go"
+	return "/events/" + eventmodel.SnakeCase(t.event.Title) + ".go"
 }
 
 func (t *eventTemplate) Prepare(ctx context.Context) error {
