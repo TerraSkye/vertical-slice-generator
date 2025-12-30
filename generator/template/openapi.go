@@ -4,14 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gosimple/slug"
-	"github.com/sirupsen/logrus"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"github.com/terraskye/vertical-slice-generator/generator/write_strategy"
 )
@@ -143,13 +141,10 @@ func (t *openApiTemplate) Render(ctx context.Context) write_strategy.Renderer {
 			}),
 		)
 
-		url := fmt.Sprintf("/api/debug/%s/{id}/%s", strings.ToLower(t.info.Model.CodeGen.Domain), slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))
-
-		fmt.Printf("added %s\n", url)
 		// Build path with parameters
-		//path := buildPathWithParams(url, commandIdAttributes)
+		path := buildPathWithParams(fmt.Sprintf("/api/debug/%s/%s", strings.ToLower(t.info.Model.CodeGen.Domain), slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", ""))), commandIdAttributes)
 
-		t.doc.AddOperation(url, "POST", operation)
+		t.doc.AddOperation(path, "POST", operation)
 
 	}
 
@@ -157,28 +152,223 @@ func (t *openApiTemplate) Render(ctx context.Context) write_strategy.Renderer {
 	//schemaName := readModelTitle
 	//t.doc.Components.Schemas[schemaName] = openapi3.NewSchemaRef("", schema)
 
-	//for _, readmodel := range t.info.Slice.Readmodels {
-	//	//generate new List endpoints
-	//	//readModelTitle := eventmodel.ProcessTitle(readmodel.Title)
-	//	//readModelIdAttributes := eventmodel.Fields(readmodel.Fields).IDAttributes()
-	//	//
-	//	//schema := ConvertFieldsToModel(readmodel.Fields)
-	//	//
-	//	//if readmodel.ListElement {
-	//	//
-	//	//	operation := openapi3.NewOperation()
-	//	//	operation.Tags = []string{readmodel.Aggregate}
-	//	//	operation.AddResponse(200, openapi3.NewResponse().WithContent(openapi3.NewContentWithJSONSchema(schema)))
-	//	//	operation.Description = readmodel.Description
-	//	//	operation.OperationID = readModelTitle
-	//	//
-	//	//	t.doc.AddOperation("/"+eventmodel.Slugify(readModelTitle), "GET", operation)
-	//	//
-	//	//} else if len(readModelIdAttributes) <= 1 {
-	//	//
-	//	//} else {
-	//	//
-	//	//}
+	for _, readModel := range t.info.Slice.Readmodels {
+		schema := ConvertFieldsToModel(readModel.Fields)
+		readModelTitle := eventmodel.ProcessTitle(readModel.Title)
+		readModelIdAttributes := eventmodel.Fields(readModel.Fields).IDAttributes()
+
+		if readModel.ListElement {
+
+		}
+
+		// Add schema to components
+		requestSchemaName := readModelTitle + "ReadModel"
+		t.doc.Components.Schemas[requestSchemaName] = openapi3.NewSchemaRef("", schema)
+
+		// Create operation
+		operation := openapi3.NewOperation()
+		operation.Tags = []string{readModel.Aggregate}
+		operation.Description = readModel.Description
+		operation.OperationID = readModelTitle
+
+		// Add path parameters if there are ID attributes
+		if len(readModelIdAttributes) > 0 {
+			operation.Parameters = openapi3.Parameters{}
+			for _, idAttr := range readModelIdAttributes {
+				param := &openapi3.ParameterRef{
+					Value: &openapi3.Parameter{
+						Name:        idAttr.Name,
+						In:          "path",
+						Required:    true,
+						Description: "ID parameter for " + idAttr.Name,
+						Schema:      getSchemaForFieldType(idAttr.Type),
+					},
+				}
+				operation.Parameters = append(operation.Parameters, param)
+			}
+		}
+
+		//TODO Readmodel lists
+		//TODO add pagination for lists
+		operation.Responses = openapi3.NewResponses(
+			openapi3.WithStatus(200, &openapi3.ResponseRef{
+				Value: &openapi3.Response{
+					Description: ptr(fmt.Sprintf("The requested %s", readModelTitle)),
+					Content: openapi3.Content{
+						"application/json": &openapi3.MediaType{
+							Schema: &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									AllOf: openapi3.SchemaRefs{
+										{Ref: "#/components/schemas/ResponseBody"}, // base schema
+										{Value: func() *openapi3.Schema { // inline override
+											s := openapi3.NewObjectSchema()
+											if readModel.ListElement {
+												s.Properties = map[string]*openapi3.SchemaRef{
+													"data": {
+														Extensions: nil,
+														Origin:     nil,
+														Ref:        "",
+														Value: func() *openapi3.Schema {
+															s2 := openapi3.NewArraySchema()
+
+															s2.Items = &openapi3.SchemaRef{
+																Ref: "#/components/schemas/" + requestSchemaName,
+															}
+															return s2
+														}(),
+													},
+												}
+											} else {
+												s.Properties = map[string]*openapi3.SchemaRef{
+													"data": {Ref: "#/components/schemas/" + requestSchemaName},
+												}
+											}
+
+											return s
+										}()},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
+		)
+
+		// Build path with parameters
+		path := buildPathWithParams(fmt.Sprintf("/api/debug/%s/%s", strings.ToLower(t.info.Model.CodeGen.Domain), slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", ""))), readModelIdAttributes)
+
+		t.doc.AddOperation(path, "GET", operation)
+
+	}
+	for _, screen := range t.info.Slice.Screens {
+		if idAttributes := eventmodel.Fields(screen.Fields).IDAttributes(); len(idAttributes) > 0 {
+
+		}
+
+		schema := ConvertFieldsToModel(screen.Fields)
+		readModelTitle := eventmodel.ProcessTitle(screen.Title)
+		readModelIdAttributes := eventmodel.Fields(screen.Fields).IDAttributes()
+
+		if screen.ListElement {
+
+		}
+
+		// Add schema to components
+		requestSchemaName := readModelTitle + "ReadModel"
+		t.doc.Components.Schemas[requestSchemaName] = openapi3.NewSchemaRef("", schema)
+
+		// Create operation
+		operation := openapi3.NewOperation()
+		operation.Tags = []string{screen.Aggregate}
+		operation.Description = screen.Description
+		operation.OperationID = readModelTitle
+
+		// Add path parameters if there are ID attributes
+		if len(readModelIdAttributes) > 0 {
+			operation.Parameters = openapi3.Parameters{}
+			for _, idAttr := range readModelIdAttributes {
+				param := &openapi3.ParameterRef{
+					Value: &openapi3.Parameter{
+						Name:        idAttr.Name,
+						In:          "path",
+						Required:    true,
+						Description: "ID parameter for " + idAttr.Name,
+						Schema:      getSchemaForFieldType(idAttr.Type),
+					},
+				}
+				operation.Parameters = append(operation.Parameters, param)
+			}
+		}
+
+		//TODO Readmodel lists
+		//TODO add pagination for lists
+		operation.Responses = openapi3.NewResponses(
+			openapi3.WithStatus(200, &openapi3.ResponseRef{
+				Value: &openapi3.Response{
+					Description: ptr(fmt.Sprintf("The requested %s", readModelTitle)),
+					Content: openapi3.Content{
+						"application/json": &openapi3.MediaType{
+							Schema: &openapi3.SchemaRef{
+								Value: &openapi3.Schema{
+									AllOf: openapi3.SchemaRefs{
+										{Ref: "#/components/schemas/ResponseBody"}, // base schema
+										{Value: func() *openapi3.Schema { // inline override
+											s := openapi3.NewObjectSchema()
+											if screen.ListElement {
+												s.Properties = map[string]*openapi3.SchemaRef{
+													"data": {
+														Extensions: nil,
+														Origin:     nil,
+														Ref:        "",
+														Value: func() *openapi3.Schema {
+															s2 := openapi3.NewArraySchema()
+
+															s2.Items = &openapi3.SchemaRef{
+																Ref: "#/components/schemas/" + requestSchemaName,
+															}
+															return s2
+														}(),
+													},
+												}
+											} else {
+												s.Properties = map[string]*openapi3.SchemaRef{
+													"data": {Ref: "#/components/schemas/" + requestSchemaName},
+												}
+											}
+
+											return s
+										}()},
+									},
+								},
+							},
+						},
+					},
+				},
+			}),
+		)
+
+		//var url string
+		//
+		//if screen.APIEndpoint != "" {
+		//	url = screen.APIEndpoint
+		//} else {
+		//	url = fmt.Sprintf("/api/debug/%s/{id}", strings.ToLower(t.info.Model.CodeGen.Domain))
+		//}
+		//
+		//id := eventmodel.Fields(screen.Fields).IDAttributes()
+		//
+		//schema := ConvertFieldsToModel(eventmodel.Fields(screen.Fields).DataAttributes())
+		//commandTitle := eventmodel.ProcessTitle(screen.Title)
+		//commandIdAttributes := eventmodel.Fields(screen.Fields).IDAttributes()
+		path := buildPathWithParams(fmt.Sprintf("/api/%s/%s", strings.ToLower(t.info.Model.CodeGen.Domain), slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", ""))), readModelIdAttributes)
+
+		t.doc.AddOperation(path, "GET", operation)
+
+	}
+
+	// Build path with parameters
+	//path := buildPathWithParams(url, commandIdAttributes)
+
+	//generate new List endpoints
+	//readModelTitle := eventmodel.ProcessTitle(readModel.Title)
+	//readModelIdAttributes := eventmodel.Fields(readModel.Fields).IDAttributes()
+	//
+	//schema := ConvertFieldsToModel(readmodel.Fields)
+	//
+	//if readmodel.ListElement {
+	//
+	//	operation := openapi3.NewOperation()
+	//	operation.Tags = []string{readmodel.Aggregate}
+	//	operation.AddResponse(200, openapi3.NewResponse().WithContent(openapi3.NewContentWithJSONSchema(schema)))
+	//	operation.Description = readmodel.Description
+	//	operation.OperationID = readModelTitle
+	//
+	//	t.doc.AddOperation("/"+eventmodel.Slugify(readModelTitle), "GET", operation)
+	//
+	//} else if len(readModelIdAttributes) <= 1 {
+	//
+	//} else {
 	//
 	//}
 
@@ -190,9 +380,6 @@ func (t *openApiTemplate) DefaultPath() string {
 }
 
 func (t *openApiTemplate) Prepare(ctx context.Context) error {
-
-	slog.Info("load from ", "path", filepath.Join(t.info.OutputFilePath, t.DefaultPath()))
-
 	if err := statFile(t.info.OutputFilePath, t.DefaultPath()); os.IsNotExist(err) {
 		t.doc = &openapi3.T{
 			OpenAPI: "3.0.3",
@@ -216,11 +403,6 @@ func (t *openApiTemplate) Prepare(ctx context.Context) error {
 			log.Fatal(err)
 		}
 
-		for _, url := range doc.Paths.InMatchingOrder() {
-			logrus.Infof("loaded %s", url)
-			//fmt.Println(url)
-		}
-
 		t.doc = doc
 	}
 
@@ -233,43 +415,14 @@ func (t *openApiTemplate) ChooseStrategy(ctx context.Context) (write_strategy.St
 
 }
 
-//func ConvertFieldsToModel(fields []eventmodel.Field) *openapi3.Schema {
-//
-//	model := openapi3.NewObjectSchema()
-//
-//	for _, field := range fields {
-//		switch field.Type {
-//		case "String":
-//			model = model.WithProperty(field.Name, openapi3.NewStringSchema())
-//		case "UUID":
-//			model = model.WithProperty(field.Name, openapi3.NewStringSchema().WithFormat("uuid"))
-//		case "Boolean":
-//			model = model.WithProperty(field.Name, openapi3.NewBoolSchema())
-//		case "Double":
-//			model = model.WithProperty(field.Name, openapi3.NewFloat64Schema())
-//		case "Date":
-//			model = model.WithProperty(field.Name, openapi3.NewInt64Schema())
-//		case "DateTime":
-//			model = model.WithProperty(field.Name, openapi3.NewInt64Schema())
-//		case "Long":
-//			model = model.WithProperty(field.Name, openapi3.NewInt64Schema())
-//		case "Int":
-//			model = model.WithProperty(field.Name, openapi3.NewInt64Schema())
-//		case "Custom":
-//			model = model.WithProperty(field.Name, ConvertFieldsToModel(field.SubFields))
-//		}
-//	}
-//
-//	return model
-//
-//}
-
 // ConvertFieldsToModel converts fields to OpenAPI schema
 func ConvertFieldsToModel(fields []eventmodel.Field) *openapi3.Schema {
 	model := openapi3.NewObjectSchema()
 	required := []string{}
 
 	for _, field := range fields {
+
+		var fieldName = eventmodel.SnakeCase(field.Name)
 		var propSchema *openapi3.Schema
 
 		switch field.Type {
@@ -282,23 +435,24 @@ func ConvertFieldsToModel(fields []eventmodel.Field) *openapi3.Schema {
 		case "Double":
 			propSchema = openapi3.NewFloat64Schema()
 		case "Date":
-			propSchema = openapi3.NewDateTimeSchema()
+			propSchema = openapi3.NewInt64Schema()
 		case "DateTime":
-			propSchema = openapi3.NewDateTimeSchema()
+			propSchema = openapi3.NewInt64Schema()
 		case "Long":
 			propSchema = openapi3.NewInt64Schema()
 		case "Int":
-			propSchema = openapi3.NewInt32Schema()
+			propSchema = openapi3.NewInt64Schema()
 		case "Custom":
 			propSchema = ConvertFieldsToModel(field.SubFields)
 		default:
 			propSchema = openapi3.NewStringSchema()
 		}
 		//TODO snakecase the field names.
-		model = model.WithProperty(field.Name, propSchema)
+
+		model = model.WithProperty(fieldName, propSchema)
 
 		if !field.Optional {
-			required = append(required, field.Name)
+			required = append(required, fieldName)
 		}
 	}
 
@@ -315,7 +469,7 @@ func getSchemaForFieldType(fieldType string) *openapi3.SchemaRef {
 	case "UUID":
 		return openapi3.NewSchemaRef("", openapi3.NewUUIDSchema())
 	case "Int":
-		return openapi3.NewSchemaRef("", openapi3.NewInt32Schema())
+		return openapi3.NewSchemaRef("", openapi3.NewInt64Schema())
 	case "Long":
 		return openapi3.NewSchemaRef("", openapi3.NewInt64Schema())
 	case "String":

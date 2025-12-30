@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"go/format"
-	"log/slog"
 	"os"
 	"path"
 	"path/filepath"
@@ -76,7 +75,7 @@ func (s createFileStrategy) Save(f Renderer, filename string) error {
 	if err := os.WriteFile(filename, formatted, 0644); err != nil {
 		return err
 	}
-	slog.Info(NewFileMark, "filename", filepath.Join(s.absPath, s.relPath), "size", len(buf.Bytes()))
+	//slog.Info(NewFileMark, "filename", filepath.Join(s.absPath, s.relPath))
 	return nil
 }
 
@@ -164,6 +163,6 @@ func (s appendFileStrategy) Save(renderer Renderer, filename string) error {
 	if _, err = f.Write(formatted[len(formatTrick):]); err != nil {
 		return err
 	}
-	slog.Info(AppendFileMark, filepath.Join(s.absPath, s.relPath), "size", len(buf.Bytes()))
+	//slog.Info(AppendFileMark, filepath.Join(s.absPath, s.relPath), "size", len(buf.Bytes()))
 	return nil
 }

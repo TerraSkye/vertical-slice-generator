@@ -3,7 +3,6 @@ package template
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"sort"
@@ -78,18 +77,18 @@ func listKeysOfMap(m map[string]bool) string {
 
 func ResolvePackagePath(outPath string) (string, error) {
 
-	slog.Info("Try to resolve path for", outPath, "package...")
+	//slog.Info("Try to resolve path for", outPath, "package...")
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return "", fmt.Errorf("GOPATH is empty")
 	}
-	slog.Info("GOPATH:", "root", gopath)
+	//slog.Info("GOPATH:", "root", gopath)
 
 	absOutPath, err := filepath.Abs(outPath)
 	if err != nil {
 		return "", err
 	}
-	slog.Info("Resolving path:", "filename", absOutPath)
+	//slog.Info("Resolving path:", "filename", absOutPath)
 
 	for _, path := range strings.Split(gopath, ":") {
 		gopathSrc := filepath.Join(path, "src")
