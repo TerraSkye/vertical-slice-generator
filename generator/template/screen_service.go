@@ -13,19 +13,19 @@ import (
 	"github.com/terraskye/vertical-slice-generator/template"
 )
 
-type screenResourceTemplate struct {
+type screenServiceTemplate struct {
 	info    *GenerationInfo
-	command *eventmodel.Command
+	command *eventmodel.Screens
 }
 
-func NewScreenResourceTemplate(info *GenerationInfo, command *eventmodel.Command) Template {
-	return &screenResourceTemplate{
+func NewScreenServiceTemplate(info *GenerationInfo, command *eventmodel.Screens) Template {
+	return &screenServiceTemplate{
 		info:    info,
 		command: command,
 	}
 }
 
-func (t *screenResourceTemplate) Render(ctx context.Context) write_strategy.Renderer {
+func (t *screenServiceTemplate) Render(ctx context.Context) write_strategy.Renderer {
 	//commandPackage, err := ResolvePackagePath(t.info.OutputFilePath + "/domain/commands")
 	//if err != nil {
 	//	panic(err)
@@ -38,6 +38,14 @@ func (t *screenResourceTemplate) Render(ctx context.Context) write_strategy.Rend
 	z.ImportAlias("github.com/go-kit/kit/transport/http", "kithttp")
 	z.ImportAlias("github.com/afosto/go-json", "json")
 	z.ImportAlias("github.com/afosto/utils-go/http/request", "afreq")
+
+	//for i, i2 := range t.command.Dependencies {
+	//	if i2.Type == "READMODEL" {
+	//		// these become query handlers
+	//
+	//	}
+	//	// i2.
+	//}
 
 	idFields := eventmodel.Fields(t.command.Fields).IDAttributes()
 
@@ -178,14 +186,14 @@ func (t *screenResourceTemplate) Render(ctx context.Context) write_strategy.Rend
 	return z
 }
 
-func (t *screenResourceTemplate) DefaultPath() string {
-	return "screens/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/http.go"
+func (t *screenServiceTemplate) DefaultPath() string {
+	return "screens/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/service.go"
 }
 
-func (t *screenResourceTemplate) Prepare(ctx context.Context) error {
+func (t *screenServiceTemplate) Prepare(ctx context.Context) error {
 	return nil
 }
 
-func (t *screenResourceTemplate) ChooseStrategy(ctx context.Context) (write_strategy.Strategy, error) {
+func (t *screenServiceTemplate) ChooseStrategy(ctx context.Context) (write_strategy.Strategy, error) {
 	return write_strategy.NewCreateFileStrategy(t.info.OutputFilePath, t.DefaultPath()), nil
 }

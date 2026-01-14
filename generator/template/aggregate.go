@@ -3,13 +3,14 @@ package template
 import (
 	"context"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+
 	. "github.com/dave/jennifer/jen"
 	mstrings "github.com/devimteam/microgen/generator/strings"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
 	"github.com/terraskye/vertical-slice-generator/generator/write_strategy"
-	"os"
-	"path/filepath"
-	"strings"
 )
 
 type aggregateTemplate struct {

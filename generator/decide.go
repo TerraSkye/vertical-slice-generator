@@ -3,7 +3,6 @@ package generator
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -13,19 +12,18 @@ import (
 )
 
 func ResolvePackagePath(outPath string) (string, error) {
-
-	slog.Info("Try to resolve path for", outPath, "package...")
+	//slog.Info("Try to resolve path for", outPath, "package...")
 	gopath := os.Getenv("GOPATH")
 	if gopath == "" {
 		return "", fmt.Errorf("GOPATH is empty")
 	}
-	slog.Info("GOPATH:", gopath)
+	//slog.Info("GOPATH:", gopath)
 
 	absOutPath, err := filepath.Abs(outPath)
 	if err != nil {
 		return "", err
 	}
-	slog.Info("Resolving path:", absOutPath)
+	//slog.Info("Resolving path:", absOutPath)
 
 	for _, path := range strings.Split(gopath, ":") {
 		gopathSrc := filepath.Join(path, "src")
@@ -159,6 +157,27 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 	for _, event := range slice.Events {
 
 		t := template.NewEventTemplate(info, &event)
+
+		unit, err := NewGenUnit(ctx, t, absOutPath)
+		if err != nil {
+			return nil, fmt.Errorf("%s: %v", absOutPath, err)
+		}
+		units = append(units, unit)
+
+		//{
+		//	t := template.NewEventHandlerTemplate(info, &event)
+		//
+		//	unit, err := NewGenUnit(ctx, t, absOutPath)
+		//	if err != nil {
+		//		return nil, fmt.Errorf("%s: %v", absOutPath, err)
+		//	}
+		//	units = append(units, unit)
+		//}
+	}
+
+	for _, event := range slice.Screens {
+
+		t := template.NewScreenServiceTemplate(info, &event)
 
 		unit, err := NewGenUnit(ctx, t, absOutPath)
 		if err != nil {
