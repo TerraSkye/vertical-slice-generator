@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+	"strings"
 
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
@@ -21,7 +22,7 @@ func NewProjectorTemplate(info *GenerationInfo, readmodel *eventmodel.Readmodel)
 }
 
 func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer {
-	z := NewFile("domain")
+	z := NewFile(eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))
 	z.ImportAlias(PackageEventSourcing, "cqrs")
 
 	eventsPackage, err := ResolvePackagePath(t.info.OutputFilePath + "/events")
@@ -54,7 +55,7 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 		Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository"),
 	)
 
-	z.Line().Func().Id("NewProjector").Params(Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository")).Params(Qual(PackageEventSourcing, "EventGroupProcessor")).BlockFunc(func(group *Group) {
+	z.Line().Func().Id("NewProjector").Params(Id("repository").Id(eventmodel.ProcessTitle(t.readmodel.Title) + "Repository")).Params(Op("*").Qual(PackageEventSourcing, "EventGroupProcessor")).BlockFunc(func(group *Group) {
 		group.Id("p").Op(":=").Op("&").Id("projector").Block(
 			Dict{
 				Id("repository"): Id("repository").Op(","),
@@ -105,7 +106,7 @@ func (t *projectorTemplate) Render(ctx context.Context) write_strategy.Renderer 
 }
 
 func (t *projectorTemplate) DefaultPath() string {
-	return "slices/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/projector.go"
+	return "slices/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/projector.go"
 }
 
 func (t *projectorTemplate) Prepare(ctx context.Context) error {

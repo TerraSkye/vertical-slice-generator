@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+	"strings"
 
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
@@ -22,7 +23,7 @@ func NewReadModelTemplate(info *GenerationInfo, readmodel *eventmodel.Readmodel)
 }
 
 func (t *readModelTemplate) Render(ctx context.Context) write_strategy.Renderer {
-	z := NewFile("domain")
+	z := NewFile(eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))
 	z.ImportAlias(PackageEventSourcing, "cqrs")
 
 	z.Line().Type().Id(eventmodel.ProcessTitle(t.readmodel.Title)).Add(template.FieldsStruct(t.readmodel.Fields, false))
@@ -31,7 +32,7 @@ func (t *readModelTemplate) Render(ctx context.Context) write_strategy.Renderer 
 }
 
 func (t *readModelTemplate) DefaultPath() string {
-	return "slices/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/readmodel.go"
+	return "slices/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/readmodel.go"
 }
 
 func (t *readModelTemplate) Prepare(ctx context.Context) error {

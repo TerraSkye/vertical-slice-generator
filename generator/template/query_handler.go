@@ -2,6 +2,7 @@ package template
 
 import (
 	"context"
+	"strings"
 
 	. "github.com/dave/jennifer/jen"
 	"github.com/terraskye/vertical-slice-generator/eventmodel"
@@ -22,7 +23,7 @@ func NewQueryHandlerTemplate(info *GenerationInfo, readmodel *eventmodel.Readmod
 }
 
 func (t *queryHandlerTemplate) Render(ctx context.Context) write_strategy.Renderer {
-	z := NewFile("domain")
+	z := NewFile(eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))
 	z.ImportAlias(PackageEventSourcing, "cqrs")
 
 	idAttributes := eventmodel.Fields(t.readmodel.Fields).IDAttributes()
@@ -68,7 +69,7 @@ func (t *queryHandlerTemplate) Render(ctx context.Context) write_strategy.Render
 }
 
 func (t *queryHandlerTemplate) DefaultPath() string {
-	return "slices/" + eventmodel.SliceTitle(t.info.Slice.Title) + "/query.go"
+	return "slices/" + eventmodel.SnakeCase(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")) + "/query.go"
 }
 
 func (t *queryHandlerTemplate) Prepare(ctx context.Context) error {

@@ -41,6 +41,7 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 	z.ImportName(aggregatePackage, "")
 
 	z.ImportAlias("github.com/go-kit/kit/transport/http", "kithttp")
+	z.ImportAlias("github.com/afosto/utils-go/http/response", "afhttp")
 	z.ImportAlias("github.com/afosto/go-json", "json")
 	z.ImportAlias("github.com/afosto/utils-go/http/request", "afreq")
 
@@ -73,13 +74,15 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 	// HTTP endpoint
 	z.Func().Id("MakeHttpHandler").Params(
 		Id("r").Op("*").Qual("github.com/gorilla/mux", "Router"),
+		Id("encoder").Op("*").Qual("github.com/afosto/utils-go/http/response", "ResponseEncoder"),
+		Id("options").Index().Qual("github.com/go-kit/kit/transport/http", "ServerOption"),
 		Id("store").Qual(PackageEventSourcing, "EventStore"),
 	).Params(Qual("net/http", "Handler")).BlockFunc(func(group *Group) {
 		//TODO paramter filter for type.
-		group.Id("r").Dot("Methods").Call(Lit("POST")).Dot("Path").Call(Id(fmt.Sprintf("\"debug/%s/{id}/%s\"", strings.ToLower(t.info.Model.CodeGen.Domain), slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", ""))))).Dot("Handler").Call(Line().Qual("github.com/go-kit/kit/transport/http", "NewServer").Params(
-			Func().Params(Id("ctx").Qual("context", "Context"), Id("request").Any()).Params(Any(), Error()).BlockFunc(func(group *Group) {
+		group.Id("handler").Op(":=").Id("NewCommandHandler").Call(Id("store"))
 
-				group.Id("handler").Op(":=").Id("NewCommandHandler").Call(Id("store"))
+		group.Id("r").Dot("Methods").Call(Lit("POST")).Dot("Path").Call(Id(fmt.Sprintf("\"/debug/%s/{id}/%s\"", strings.ToLower(t.info.Model.CodeGen.Domain), slug.Make(strings.ReplaceAll(t.info.Slice.Title, "slice:", ""))))).Dot("Handler").Call(Line().Qual("github.com/go-kit/kit/transport/http", "NewServer").Params(
+			Func().Params(Id("ctx").Qual("context", "Context"), Id("request").Any()).Params(Any(), Error()).BlockFunc(func(group *Group) {
 				group.Line().List(Id("result"), Err()).Op(":=").Id("handler").Call(Id("ctx"), Id("request").Assert(Id("Command")))
 
 				// endpoint body
@@ -87,8 +90,9 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 
 				group.Line().Return(Id("result"), Nil())
 			}),
-			Id(fmt.Sprintf("decode%sRequest", eventmodel.ProcessTitle(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))),
-			Id(fmt.Sprintf("encode%sRequest", eventmodel.ProcessTitle(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))),
+			Line().Id(fmt.Sprintf("decode%sRequest", eventmodel.ProcessTitle(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))),
+			Line().Id(fmt.Sprintf("encode%sRequest", eventmodel.ProcessTitle(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))).Call(Id("encoder")),
+			Line().Id("options").Op("...").Line(),
 		),
 		)
 		group.Return(Id("r"))
@@ -105,7 +109,6 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 		if idAttributes := eventmodel.Fields(t.command.Fields).IDAttributes(); len(idAttributes) > 0 {
 			group.Line().Id(idAttributes[0].Name).Op(":=").Qual("github.com/google/uuid", "MustParse").Call(Qual("github.com/gorilla/mux", "Vars").Call(Id("r")).Types(Id(strconv.Quote("id"))))
 		}
-
 		//TODO improve field mapping
 		group.Line().Var().Id("payload").Struct(Id("Data").Add(
 			template.FieldsStruct(eventmodel.Fields(t.command.Fields).DataAttributes(), true),
@@ -169,12 +172,30 @@ func (t *commandResourceTemplate) Render(ctx context.Context) write_strategy.Ren
 		group.Return(Id("cmd"), Nil())
 	})
 	//).Block(Return(Nil(), Nil()))
-	z.Func().Id(fmt.Sprintf("encode%sRequest", eventmodel.ProcessTitle(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))).Params(
-		Id("ctx").Qual("context", "Context"),
-		Id("w").Qual("net/http", "ResponseWriter"),
-		Id("response").Interface(),
-	).Params(Error()).Block(
-		Return(Nil()))
+	z.Func().Id(fmt.Sprintf("encode%sRequest", eventmodel.ProcessTitle(strings.ReplaceAll(t.info.Slice.Title, "slice:", "")))).
+		Params(
+			Id("encoder").Op("*").Qual("github.com/afosto/utils-go/http/response", "ResponseEncoder"),
+		).
+		Params(
+			Qual("github.com/go-kit/kit/transport/http", "EncodeResponseFunc"),
+		).Block(
+		Return(
+			Func().Params(
+				Id("ctx").Qual("context", "Context"),
+				Id("w").Qual("net/http", "ResponseWriter"),
+				Id("body").Interface(),
+			).Params(
+				Error(),
+			)).BlockFunc(func(group *Group) {
+
+			group.Line().Id("response").Op(":=").Id("body")
+
+			group.Line().Return(Id("encoder").Dot("EncodeWithStatus").Call(Qual("net/http", "StatusOK")).Call(
+				Id("ctx"),
+				Id("w"),
+				Qual("github.com/afosto/utils-go/http/response", "Response").Block(Dict{Id("Data"): Id("response").Op(",")}),
+			))
+		}))
 
 	return z
 }
