@@ -61,6 +61,15 @@ func ListTemplatesForGen(ctx context.Context, model *eventmodel.EventModel, slic
 			}
 			units = append(units, unit)
 		}
+
+		{
+			t := template.NewCommandSpecificationTemplate(info, &command)
+			unit, err := NewGenUnit(ctx, t, absOutPath)
+			if err != nil {
+				return nil, fmt.Errorf("%s: %v", absOutPath, err)
+			}
+			units = append(units, unit)
+		}
 	}
 
 	//for _, aggregateName := range slice.Aggregates {
